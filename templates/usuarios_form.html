@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block page_title %}{{ 'Nuevo usuario' if modo=='crear' else 'Editar usuario' }}{% endblock %}
+{% block content %}
+{% if request.query_params.get('error') %}
+  <div class="mb-4 rounded-lg border border-rose-800 bg-rose-900/40 text-rose-100 px-3 py-2">{{ request.query_params.get('error') }}</div>
+{% endif %}
+<form method="post" action="{{ '/usuarios' if modo=='crear' else '/usuarios/' ~ u.id }}" class="grid gap-4 max-w-md">
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Usuario</label>
+    <input name="username" value="{{ u.username if u else '' }}" required class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Rol</label>
+    <select name="role" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      {% for r in ['User','Admin'] %}
+        <option value="{{ r }}" {{ 'selected' if u and u.role==r else '' }}>{{ r }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="flex items-center gap-2">
+    <input id="active" type="checkbox" name="active" value="1" class="rounded border-slate-700 bg-slate-900" {{ 'checked' if not u or u.active else '' }}>
+    <label for="active" class="text-sm">Activo</label>
+  </div>
+
+  {% if modo == 'crear' %}
+  <div class="grid md:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Contraseña</label>
+      <input type="password" name="password" required class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Repetir contraseña</label>
+      <input type="password" name="password2" required class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="flex gap-3">
+    <button class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white">{{ 'Crear' if modo=='crear' else 'Actualizar' }}</button>
+    <a href="/usuarios" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

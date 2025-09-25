@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-xl font-semibold mb-4">
+  {{ 'Crear categoría' if modo=='crear' else 'Editar categoría' }}
+</h2>
+
+{% if request.query_params.get('error') %}
+  <div class="mb-4 text-sm rounded-lg border border-rose-700/40 bg-rose-900/40 text-rose-200 px-3 py-2">
+    {{ request.query_params.get('error') }}
+  </div>
+{% endif %}
+
+<form method="post" action="{{ '/categorias' if modo=='crear' else '/categorias/' ~ categoria.id }}" class="grid gap-4 max-w-lg">
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Nombre</label>
+    <input type="text" name="nombre" value="{{ categoria.nombre if categoria else '' }}" required
+           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Tipo</label>
+    <select name="tipo" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      {% for t in ['entrada','salida','mixta'] %}
+        <option value="{{ t }}" {{ 'selected' if categoria and categoria.tipo==t else '' }}>{{ t|capitalize }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="flex gap-3">
+    <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium">
+      {{ 'Guardar' if modo=='crear' else 'Actualizar' }}
+    </button>
+    <a href="/categorias" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

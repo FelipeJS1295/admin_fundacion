@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-xl font-semibold mb-4">Entradas</h2>
+
+<form method="get" class="grid gap-3 md:grid-cols-6 mb-4">
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Desde</label>
+    <input type="date" name="desde" value="{{ filtros.desde or '' }}"
+           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Hasta</label>
+    <input type="date" name="hasta" value="{{ filtros.hasta or '' }}"
+           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Categoría</label>
+    <select name="categoria_id" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      <option value="">Todas</option>
+      {% for c in categorias %}
+        <option value="{{ c.id }}" {{ 'selected' if filtros.categoria_id==c.id else '' }}>{{ c.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Método</label>
+    <select name="metodo_pago" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      <option value="">Todos</option>
+      {% for m in ['efectivo','transferencia','debito','credito','otros'] %}
+        <option value="{{ m }}" {{ 'selected' if filtros.metodo_pago==m else '' }}>{{ m|capitalize }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="md:col-span-2">
+    <label class="block text-sm text-slate-300 mb-1">Buscar</label>
+    <input type="text" name="q" value="{{ filtros.q or '' }}" placeholder="Descripción..."
+           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+  </div>
+  <div class="md:col-span-6 flex gap-2">
+    <button class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Filtrar</button>
+    <a href="/entradas" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Limpiar</a>
+    <a href="/entradas/nueva" class="ml-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white">Nueva entrada</a>
+  </div>
+</form>
+
+<div class="overflow-x-auto rounded-2xl border border-slate-800">
+  <table class="min-w-full text-sm">
+    <thead class="bg-slate-900 text-slate-300">
+    <tr>
+        <th class="px-3 py-2 text-left">Fecha</th>
+        <th class="px-3 py-2 text-left">Monto</th>
+        <th class="px-3 py-2 text-left">Método</th>
+        <th class="px-3 py-2 text-left">Categoría</th>
+        <th class="px-3 py-2 text-left">Descripción</th>
+        <th class="px-3 py-2 text-left">Acciones</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for t in entradas %}
+    <tr class="border-t border-slate-800">
+        <td class="px-3 py-2">{{ t.fecha }}</td>
+        <td class="px-3 py-2 font-semibold">${{ '%.0f'|format(t.monto) }}</td>
+        <td class="px-3 py-2">{{ t.metodo_pago }}</td>
+        <td class="px-3 py-2">{{ t.categoria.nombre if t.categoria else '-' }}</td>
+        <td class="px-3 py-2">{{ t.descripcion or '' }}</td>
+        <td class="px-3 py-2 space-x-2">
+        <a class="underline" href="/entradas/{{ t.id }}">Ver</a>
+        <a class="underline" href="/entradas/{{ t.id }}/editar">Editar</a>
+        <form method="post" action="/entradas/{{ t.id }}/eliminar" class="inline" onsubmit="return confirm('¿Eliminar entrada?');">
+            <button class="underline text-rose-300">Eliminar</button>
+        </form>
+        </td>
+    </tr>
+    {% else %}
+    <tr><td class="px-3 py-4 text-slate-400" colspan="6">No hay entradas.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

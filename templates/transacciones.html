@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-xl font-semibold mb-4">Transacciones (últimas 100)</h2>
+
+<div class="overflow-x-auto rounded-2xl border border-slate-800">
+  <table class="min-w-full text-sm">
+    <thead class="bg-slate-900 text-slate-300">
+      <tr>
+        <th class="px-3 py-2 text-left">Fecha</th>
+        <th class="px-3 py-2 text-left">Tipo</th>
+        <th class="px-3 py-2 text-left">Monto</th>
+        <th class="px-3 py-2 text-left">Método</th>
+        <th class="px-3 py-2 text-left">Categoría</th>
+        <th class="px-3 py-2 text-left">Descripción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in transacciones %}
+      <tr class="border-t border-slate-800">
+        <td class="px-3 py-2">{{ t.fecha }}</td>
+        <td class="px-3 py-2">{{ t.tipo }}</td>
+        <td class="px-3 py-2">${{ "%.0f"|format(t.monto) }}</td>
+        <td class="px-3 py-2">{{ t.metodo_pago }}</td>
+        <td class="px-3 py-2">{{ t.categoria.nombre if t.categoria else '-' }}</td>
+        <td class="px-3 py-2">{{ t.descripcion or '' }}</td>
+      </tr>
+      {% else %}
+      <tr><td class="px-3 py-4 text-slate-400" colspan="6">Sin transacciones.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

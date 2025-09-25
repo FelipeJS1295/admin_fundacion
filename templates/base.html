@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ title or "Contabilidad Fundación" }}{% endblock %}</title>
+
+  <!-- Tailwind vía CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: "#10b981", 600:"#059669", 700:"#047857" }, /* esmeralda */
+            ink:   { 50:"#f8fafc", 100:"#f1f5f9", 900:"#0f172a" }        /* slate-like */
+          },
+          boxShadow: {
+            soft: "0 10px 30px -12px rgb(0 0 0 / 0.35)"
+          }
+        }
+      }
+    }
+  </script>
+
+  {% block head %}{% endblock %}
+</head>
+<body class="h-full bg-slate-950 text-slate-100">
+  <div class="min-h-screen flex">
+
+    {# ===== Sidebar ===== #}
+    {% set path = request.url.path %}
+    <aside id="sidebar"
+           class="fixed inset-y-0 left-0 z-50 w-72 transform -translate-x-full md:translate-x-0 md:static
+                  bg-slate-900/70 backdrop-blur border-r border-slate-800 shadow-soft transition-transform">
+      <div class="h-16 px-4 flex items-center gap-3 border-b border-slate-800">
+        <div class="h-9 w-9 rounded-xl bg-brand/15 text-brand flex items-center justify-center font-semibold">CF</div>
+        <div class="leading-tight">
+          <div class="font-semibold">Contabilidad</div>
+          <div class="text-xs text-slate-400">Fundación</div>
+        </div>
+      </div>
+
+      <nav class="p-3 space-y-1 text-sm">
+        <a href="/"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg border
+                  {{ 'bg-slate-800/80 border-slate-700 text-white' if path=='/' else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}">
+          <!-- home icon -->
+          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-12v-9h-3z"/></svg>
+          Resumen
+        </a>
+
+        <div class="mt-3 px-3 text-xs uppercase tracking-wider text-slate-400">Movimientos</div>
+
+        <a href="/entradas"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg border
+                  {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/entradas') and not path.endswith('/nueva') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}">
+          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M5 12h14v2H5zM5 7h14v2H5zM5 17h14v2H5z"/></svg>
+          Entradas
+        </a>
+        <a href="/entradas/nueva"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg border
+                  {{ 'bg-emerald-900/50 border-emerald-800 text-emerald-100' if path=='/entradas/nueva' else 'border-transparent hover:bg-emerald-900/30 text-emerald-200' }}">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M11 11V6h2v5h5v2h-5v5h-2v-5H6v-2z"/></svg>
+          Nueva entrada
+        </a>
+
+        <a href="/salidas"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg border
+                  {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/salidas') and not path.endswith('/nueva') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}">
+          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z"/></svg>
+          Salidas
+        </a>
+        <a href="/salidas/nueva"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg border
+                  {{ 'bg-rose-900/50 border-rose-800 text-rose-100' if path=='/salidas/nueva' else 'border-transparent hover:bg-rose-900/30 text-rose-200' }}">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M13 11h5v2h-5v5h-2v-5H6v-2h5V6h2z"/></svg>
+          Nueva salida
+        </a>
+
+        <div class="mt-3 px-3 text-xs uppercase tracking-wider text-slate-400">Gestión</div>
+
+        <a href="/transacciones"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg border
+                  {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/transacciones') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}">
+          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg>
+          Transacciones
+        </a>
+        <a href="/categorias"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg border
+                  {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/categorias') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}">
+          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+          Categorías
+        </a>
+
+        <a href="/usuarios"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg border
+                {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/usuarios') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}">
+        <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.67 0-8 1.34-8 4v2h10v-2c0-1.86.76-3.41 2-4.5-1.02-.31-2.09-.5-4-.5zm8 0c-.62 0-1.17.04-1.67.1 1.64 1.16 2.67 2.9 2.67 5.4v2h8v-2c0-2.66-5.33-4.5-9-4.5z"/></svg>
+        Usuarios
+        </a>
+        <a href="/mi-password"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg border border-transparent hover:bg-slate-800/60 text-slate-300">
+        <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17a2 2 0 100-4 2 2 0 000 4zm6-7V7a6 6 0 10-12 0v3H4v12h16V10h-2zm-8-3a4 4 0 118 0v3H10V7z"/></svg>
+        Mi contraseña
+        </a>
+
+        <div class="mt-3 px-3 text-xs uppercase tracking-wider text-slate-400">Reportes</div>
+        <a href="/reportes" class="flex items-center gap-3 px-3 py-2 rounded-lg border border-transparent hover:bg-slate-800/60 text-slate-300">
+          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v18H5zM7 7h10v2H7zM7 11h10v2H7zM7 15h10v2H7z"/></svg>
+          (Próx.) Reportes
+        </a>
+      </nav>
+    </aside>
+
+    {# ===== Main wrapper ===== #}
+    <div class="flex-1 min-w-0 md:ml-0">
+      {# Topbar #}
+      <header class="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/60 backdrop-blur">
+        <div class="h-16 max-w-7xl mx-auto px-4 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <button id="btnSidebar" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-700/70 bg-slate-900/60">
+              <!-- burger -->
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z"/></svg>
+            </button>
+            <span class="hidden md:block text-sm text-slate-300">Panel administrativo</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <a href="/entradas/nueva" class="hidden sm:inline-flex px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm">+ Entrada</a>
+            <a href="/salidas/nueva"  class="hidden sm:inline-flex px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-sm">+ Salida</a>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+        <span class="hidden sm:inline text-sm text-slate-300">
+            {% if request.session.get('user_id') %}Conectado{% else %}Visitante{% endif %}
+        </span>
+        <a href="/logout" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-sm">Salir</a>
+        </div>
+      </header>
+
+      {# ===== Page content ===== #}
+      <main class="max-w-7xl mx-auto px-4 py-6">
+        {# Flash messages vía querystring ?ok=1 o ?error=... #}
+        {% if request.query_params.get('ok') %}
+          <div class="mb-4 rounded-lg border border-emerald-800 bg-emerald-900/40 text-emerald-100 px-3 py-2">Operación realizada correctamente.</div>
+        {% elif request.query_params.get('error') %}
+          <div class="mb-4 rounded-lg border border-rose-800 bg-rose-900/40 text-rose-100 px-3 py-2">{{ request.query_params.get('error') }}</div>
+        {% endif %}
+
+        <div class="mb-6 flex items-center justify-between gap-3">
+          <div>
+            <h1 class="text-2xl font-semibold">{% block page_title %}{{ title or "Resumen" }}{% endblock %}</h1>
+            {% block breadcrumb %}{% endblock %}
+          </div>
+          <div class="flex items-center gap-2">{% block page_actions %}{% endblock %}</div>
+        </div>
+
+        {% block content %}{% endblock %}
+      </main>
+
+        <footer class="max-w-7xl mx-auto px-4 py-8 text-xs text-slate-400">
+        Realizado por <a href="https://quantiumcoders.cl" target="_blank" class="underline">quantiumcoders.cl</a>
+        </footer>
+    </div>
+  </div>
+
+  <script>
+    const btn = document.getElementById('btnSidebar');
+    const sidebar = document.getElementById('sidebar');
+    if (btn && sidebar) btn.addEventListener('click', () => {
+      sidebar.classList.toggle('-translate-x-full');
+    });
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

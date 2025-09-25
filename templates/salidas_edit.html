@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block page_title %}Editar salida{% endblock %}
+{% block content %}
+<form method="post" action="/salidas/{{ t.id }}" enctype="multipart/form-data" class="grid gap-4 max-w-3xl">
+  <div class="grid md:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Fecha</label>
+      <input type="date" name="fecha" value="{{ t.fecha }}" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Monto</label>
+      <input type="number" name="monto" step="0.01" min="0" value="{{ t.monto }}"
+             class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2" required>
+    </div>
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Método de pago</label>
+      <select name="metodo_pago" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+        {% for m in ['efectivo','transferencia','debito','credito','otros'] %}
+          <option value="{{ m }}" {{ 'selected' if t.metodo_pago==m else '' }}>{{ m|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Categoría</label>
+      <select name="categoria_id" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+        <option value="">— Selecciona —</option>
+        {% for c in categorias %}
+          <option value="{{ c.id }}" {{ 'selected' if t.categoria_id==c.id else '' }}>{{ c.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Concepto</label>
+      <input type="text" name="concepto" value="{{ t.concepto or '' }}"
+             class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">N° Documento</label>
+      <input type="text" name="numero_documento" value="{{ t.numero_documento or '' }}"
+             class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Comprobante</label>
+      <div class="space-y-2">
+        {% if t.documento_path %}
+          <a class="underline" target="_blank" href="{{ t.documento_path }}">Ver actual</a>
+          <label class="inline-flex items-center gap-2 text-sm">
+            <input type="checkbox" name="eliminar_documento" value="1" class="rounded border-slate-700 bg-slate-900">
+            Eliminar archivo actual
+          </label>
+        {% else %}
+          <div class="text-xs text-slate-400">No hay archivo adjunto.</div>
+        {% endif %}
+        <input type="file" name="documento" accept=".jpg,.jpeg,.png,.pdf"
+               class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      </div>
+      <p class="text-xs text-slate-400 mt-1">Se guarda en /static/docs_salidas/</p>
+    </div>
+  </div>
+
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Descripción</label>
+    <textarea name="descripcion" rows="3" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">{{ t.descripcion or '' }}</textarea>
+  </div>
+
+  <div class="flex gap-3">
+    <button class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white">Actualizar</button>
+    <a href="/salidas/{{ t.id }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

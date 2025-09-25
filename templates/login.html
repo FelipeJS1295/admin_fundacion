@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingresar · Contabilidad Fundación</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 grid place-items-center">
+  <div class="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="h-10 w-10 rounded-xl bg-emerald-600/20 text-emerald-300 grid place-items-center font-bold">CF</div>
+      <div>
+        <div class="font-semibold">Panel Contabilidad</div>
+        <div class="text-xs text-slate-400">Fundación</div>
+      </div>
+    </div>
+
+    {% if request.query_params.get('ok') %}
+      <div class="mb-4 rounded-lg border border-emerald-800 bg-emerald-900/40 text-emerald-100 px-3 py-2">Sesión cerrada.</div>
+    {% elif request.query_params.get('error') %}
+      <div class="mb-4 rounded-lg border border-rose-800 bg-rose-900/40 text-rose-100 px-3 py-2">{{ request.query_params.get('error') }}</div>
+    {% endif %}
+
+    <form method="post" action="/login" class="grid gap-3">
+      <input type="hidden" name="next" value="{{ next or '/' }}">
+      <div>
+        <label class="block text-sm text-slate-300 mb-1">Usuario</label>
+        <input name="username" required class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2" placeholder="admin">
+      </div>
+      <div>
+        <label class="block text-sm text-slate-300 mb-1">Contraseña</label>
+        <input type="password" name="password" required class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2" placeholder="••••••••">
+      </div>
+      <button class="mt-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white">Ingresar</button>
+    </form>
+
+    <p class="mt-4 text-xs text-slate-500">Usuario inicial: <code>admin</code> · Clave: <code>admin123</code> (cám-biala luego).</p>
+  </div>
+</body>
+</html>

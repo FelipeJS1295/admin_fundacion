@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block page_title %}Usuarios{% endblock %}
+{% block page_actions %}
+  <a href="/usuarios/nuevo" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm">+ Nuevo</a>
+{% endblock %}
+{% block content %}
+<div class="overflow-x-auto rounded-2xl border border-slate-800">
+  <table class="min-w-full text-sm">
+    <thead class="bg-slate-900 text-slate-300">
+      <tr>
+        <th class="px-3 py-2 text-left">Usuario</th>
+        <th class="px-3 py-2 text-left">Rol</th>
+        <th class="px-3 py-2 text-left">Activo</th>
+        <th class="px-3 py-2 text-left">Creado</th>
+        <th class="px-3 py-2 text-left">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr class="border-t border-slate-800">
+        <td class="px-3 py-2">{{ u.username }}</td>
+        <td class="px-3 py-2">{{ u.role }}</td>
+        <td class="px-3 py-2">
+          <span class="px-2 py-0.5 text-xs rounded-full
+            {{ 'bg-emerald-900/40 text-emerald-200 border border-emerald-700/40' if u.active else 'bg-slate-800 text-slate-300 border border-slate-700/50' }}">
+            {{ 'Sí' if u.active else 'No' }}
+          </span>
+        </td>
+        <td class="px-3 py-2">{{ u.creado_en }}</td>
+        <td class="px-3 py-2 space-x-2">
+          <a class="underline" href="/usuarios/{{ u.id }}/editar">Editar</a>
+          <a class="underline" href="/usuarios/{{ u.id }}/password">Clave</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td class="px-3 py-4 text-slate-400" colspan="5">Sin usuarios.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

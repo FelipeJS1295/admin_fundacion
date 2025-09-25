@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-xl font-semibold mb-4">Categorías</h2>
+
+<div class="mb-3">
+  <a href="/categorias/nueva" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white">Nueva categoría</a>
+</div>
+
+<div class="overflow-x-auto rounded-2xl border border-slate-800">
+  <table class="min-w-full text-sm">
+    <thead class="bg-slate-900 text-slate-300">
+      <tr>
+        <th class="px-3 py-2 text-left">Nombre</th>
+        <th class="px-3 py-2 text-left">Tipo</th>
+        <th class="px-3 py-2 text-left">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in categorias %}
+      <tr class="border-t border-slate-800">
+        <td class="px-3 py-2">{{ c.nombre }}</td>
+        <td class="px-3 py-2">{{ c.tipo }}</td>
+        <td class="px-3 py-2">
+          <a class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700" href="/categorias/{{ c.id }}/editar">Editar</a>
+          <form method="post" action="/categorias/{{ c.id }}/eliminar" class="inline" onsubmit="return confirm('¿Eliminar categoría?');">
+            <button class="px-3 py-1 rounded-lg bg-rose-700 hover:bg-rose-600 text-white">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td class="px-3 py-4 text-slate-400" colspan="3">Aún no hay categorías.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

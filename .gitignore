@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+
+# Entorno y secretos
+.env
+*.env
+
+# Base de datos local (si llegas a usar SQLite alguna vez)
+*.db
+*.sqlite3
+
+# Subidas de comprobantes (se guardan en el servidor, no en git)
+static/docs_salidas/
+!static/docs_salidas/.gitkeep

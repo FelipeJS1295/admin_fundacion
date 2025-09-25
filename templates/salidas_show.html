@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block page_title %}Detalle de salida{% endblock %}
+{% block content %}
+<div class="grid gap-4 md:grid-cols-2">
+  <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
+    <h3 class="font-semibold mb-3">Información</h3>
+    <div class="space-y-2 text-sm">
+      <div><span class="text-slate-400">Fecha:</span> {{ t.fecha }}</div>
+      <div><span class="text-slate-400">Concepto:</span> {{ t.concepto or '-' }}</div>
+      <div><span class="text-slate-400">Monto:</span> ${{ '%.0f'|format(t.monto) }}</div>
+      <div><span class="text-slate-400">Método:</span> {{ t.metodo_pago }}</div>
+      <div><span class="text-slate-400">Categoría:</span> {{ t.categoria.nombre if t.categoria else '-' }}</div>
+      <div><span class="text-slate-400">N° Documento:</span> {{ t.numero_documento or '-' }}</div>
+      <div><span class="text-slate-400">Descripción:</span> {{ t.descripcion or '-' }}</div>
+      <div><span class="text-slate-400">Comprobante:</span>
+        {% if t.documento_path %}
+          <a class="underline" href="{{ t.documento_path }}" target="_blank">Ver archivo</a>
+        {% else %}-{% endif %}
+      </div>
+    </div>
+    <div class="mt-5 flex gap-2">
+      <a class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700" href="/salidas/{{ t.id }}/editar">Editar</a>
+      <form method="post" action="/salidas/{{ t.id }}/eliminar" onsubmit="return confirm('¿Eliminar salida?');">
+        <button class="px-3 py-2 rounded-lg bg-rose-700 hover:bg-rose-600 text-white">Eliminar</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
