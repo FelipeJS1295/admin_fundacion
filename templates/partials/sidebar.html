@@ -1,0 +1,67 @@
+<aside id="sidebar"
+       class="fixed z-50 inset-y-0 left-0 w-72 translate-x-[-110%] md:translate-x-0 md:static md:z-auto
+              bg-slate-900/70 backdrop-blur border-r border-slate-800 transition-transform">
+  <div class="h-16 px-4 flex items-center border-b border-slate-800">
+    <a href="/" class="flex items-center gap-3">
+      <div class="h-8 w-8 rounded-lg bg-brand/20 border border-brand/30 grid place-items-center">
+        <span class="text-brand font-semibold">FSJ</span>
+      </div>
+      <span class="font-semibold">Panel Fundación</span>
+    </a>
+  </div>
+
+  <nav aria-label="Principal" class="p-3 space-y-2 overflow-y-auto h-[calc(100vh-4rem)]">
+    <!-- Inicio -->
+    <a href="/"
+       class="flex items-center gap-3 px-3 py-2 rounded-lg border
+              {{ 'bg-slate-800/80 border-slate-700 text-white' if path=='/' else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}"
+       aria-current="{{ 'page' if path=='/' }}">
+      <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12 12 3l9 9-1.5 1.5L12 5.5 4.5 13.5V21h6v-6h3v6h6v-7.5l1.5 1.5"/></svg>
+      Resumen
+    </a>
+
+    {# ---------- FINANZAS ---------- #}
+    {% set open_fin = path.startswith('/entradas') or path.startswith('/salidas') or path.startswith('/transacciones') or path.startswith('/categorias') %}
+    <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if open_fin else '' }}>
+      <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/60 cursor-pointer select-none">
+        <div class="flex items-center gap-2">
+          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z"/></svg>
+          <span class="font-medium">Finanzas</span>
+        </div>
+        <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5H7z"/></svg>
+      </summary>
+      <div class="bg-slate-900/40 p-2">
+        <a href="/entradas"       class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/entradas')       else 'hover:bg-slate-800/60 text-slate-300' }}">Entradas</a>
+        <a href="/salidas"        class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/salidas')        else 'hover:bg-slate-800/60 text-slate-300' }}">Salidas</a>
+        <a href="/transacciones"  class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/transacciones')  else 'hover:bg-slate-800/60 text-slate-300' }}">Transacciones</a>
+        <a href="/categorias"     class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/categorias')     else 'hover:bg-slate-800/60 text-slate-300' }}">Categorías</a>
+      </div>
+    </details>
+
+    {# ---------- INVENTARIO ---------- #}
+    {% set open_inv = path.startswith('/inventario') %}
+    <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if open_inv else '' }}>
+      <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/60 cursor-pointer select-none">
+        <div class="flex items-center gap-2">
+          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7h18v2H3zm0 4h18v10H3zM7 3h10v2H7z"/></svg>
+          <span class="font-medium">Inventario</span>
+        </div>
+        <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5H7z"/></svg>
+      </summary>
+      <div class="bg-slate-900/40 p-2">
+        <a href="/inventario"               class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path == '/inventario'                       else 'hover:bg-slate-800/60 text-slate-300' }}">Panel</a>
+        <a href="/inventario/productos"     class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/productos')     else 'hover:bg-slate-800/60 text-slate-300' }}">Productos</a>
+        <a href="/inventario/movimientos"   class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/movimientos')   else 'hover:bg-slate-800/60 text-slate-300' }}">Movimientos</a>
+        <a href="/inventario/bodegas"       class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/bodegas')       else 'hover:bg-slate-800/60 text-slate-300' }}">Bodegas</a>
+        <a href="/inventario/categorias"    class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/categorias')    else 'hover:bg-slate-800/60 text-slate-300' }}">Categorías</a>
+      </div>
+    </details>
+
+    <a href="/usuarios"
+       class="flex items-center gap-3 px-3 py-2 rounded-lg border
+              {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/usuarios') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}">
+      <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3ZM8 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-2.67 0-8 1.34-8 4v2h10v-2c0-1.86.76-3.41 2-4.5-1.02-.31-2.09-.5-4-.5Zm8 0c-3.67 0-9 1.84-9 4.5V20h18v-2c0-2.66-5.33-4.5-9-4.5Z"/></svg>
+      Usuarios
+    </a>
+  </nav>
+</aside>
