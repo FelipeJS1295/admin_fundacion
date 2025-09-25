@@ -11,7 +11,7 @@ from app.db import get_db
 from app.models import Transaccion, Categoria
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+from app.core.templates import templates
 
 
 def limites_mes_actual() -> tuple[date, date]:

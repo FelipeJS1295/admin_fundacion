@@ -1,4 +1,3 @@
-# app/routers/categorias.py
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -9,18 +8,18 @@ from app.db import get_db
 from app.models import Categoria
 
 router = APIRouter(tags=["categorias"])
-templates = Jinja2Templates(directory="templates")
+from app.core.templates import templates
 
 @router.get("/categorias", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db)):
     cats = db.query(Categoria).order_by(Categoria.nombre).all()
-    return templates.TemplateResponse("categorias_index.html", {
+    return templates.TemplateResponse("categorias/index.html", {
         "request": request, "categorias": cats
     })
 
 @router.get("/categorias/nueva", response_class=HTMLResponse)
 def nueva(request: Request):
-    return templates.TemplateResponse("categorias_form.html", {
+    return templates.TemplateResponse("categorias/form.html", {
         "request": request, "modo": "crear", "categoria": None
     })
 
@@ -45,7 +44,7 @@ def editar_form(cat_id: int, request: Request, db: Session = Depends(get_db)):
     c = db.get(Categoria, cat_id)
     if not c:
         return RedirectResponse(url="/categorias?error=No%20encontrada", status_code=303)
-    return templates.TemplateResponse("categorias_form.html", {
+    return templates.TemplateResponse("categorias/categorias_form.html", {
         "request": request, "modo": "editar", "categoria": c
     })
 

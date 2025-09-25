@@ -1,0 +1,1 @@
+partida: uvicorn app.main:app --reload

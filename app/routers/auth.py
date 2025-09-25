@@ -1,4 +1,3 @@
-# app/routers/auth.py
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -9,11 +8,11 @@ from app.models import User
 from app.auth import verify_password, hash_password, get_current_user
 
 router = APIRouter(tags=["auth"])
-templates = Jinja2Templates(directory="templates")
+from app.core.templates import templates
 
 @router.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "next": request.query_params.get("next", "/")})
+    return templates.TemplateResponse("auth/login.html", {"request": request, "next": request.query_params.get("next", "/")})
 
 @router.post("/login")
 def login(

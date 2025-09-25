@@ -9,7 +9,7 @@ from app.db import get_db
 from app.models import Transaccion, Categoria
 
 router = APIRouter(tags=["entradas"])
-templates = Jinja2Templates(directory="templates")
+from app.core.templates import templates
 
 def categorias_entrada(db: Session):
     return db.query(Categoria)\
@@ -44,7 +44,7 @@ def listar_entradas(
     entradas = query.order_by(Transaccion.fecha.desc(), Transaccion.id.desc()).limit(limit).all()
     cats = categorias_entrada(db)
 
-    return templates.TemplateResponse("entradas_list.html", {
+    return templates.TemplateResponse("entradas/list.html", {
         "request": request,
         "entradas": entradas,
         "categorias": cats,
@@ -56,7 +56,7 @@ def listar_entradas(
 @router.get("/entradas/nueva", response_class=HTMLResponse)
 def nueva_entrada_form(request: Request, db: Session = Depends(get_db)):
     cats = categorias_entrada(db)
-    return templates.TemplateResponse("entradas_form.html", {
+    return templates.TemplateResponse("entradas/form.html", {
         "request": request,
         "categorias": cats,
         "today": date.today().isoformat()
@@ -93,7 +93,7 @@ def ver_entrada(tx_id: int, request: Request, db: Session = Depends(get_db)):
     tx = db.get(Transaccion, tx_id)
     if not tx or tx.tipo != "entrada":
         return RedirectResponse(url="/entradas?error=Entrada%20no%20encontrada", status_code=303)
-    return templates.TemplateResponse("entradas_show.html", {
+    return templates.TemplateResponse("entradas/show.html", {
         "request": request, "t": tx
     })
 
@@ -104,7 +104,7 @@ def editar_entrada_form(tx_id: int, request: Request, db: Session = Depends(get_
     if not tx or tx.tipo != "entrada":
         return RedirectResponse(url="/entradas?error=Entrada%20no%20encontrada", status_code=303)
     cats = categorias_entrada(db)
-    return templates.TemplateResponse("entradas_edit.html", {
+    return templates.TemplateResponse("entradas/edit.html", {
         "request": request, "t": tx, "categorias": cats
     })
 

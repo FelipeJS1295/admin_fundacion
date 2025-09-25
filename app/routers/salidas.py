@@ -12,7 +12,7 @@ from app.db import get_db
 from app.models import Transaccion, Categoria
 
 router = APIRouter(tags=["salidas"])
-templates = Jinja2Templates(directory="templates")
+from app.core.templates import templates
 
 DOCS_DIR = Path("static") / "docs_salidas"
 DOCS_DIR.mkdir(parents=True, exist_ok=True)
@@ -76,7 +76,7 @@ def listar_salidas(
     salidas = query.order_by(Transaccion.fecha.desc(), Transaccion.id.desc()).limit(limit).all()
     cats = categorias_salida(db)
 
-    return templates.TemplateResponse("salidas_list.html", {
+    return templates.TemplateResponse("salidas/list.html", {
         "request": request,
         "salidas": salidas,
         "categorias": cats,
@@ -88,7 +88,7 @@ def listar_salidas(
 @router.get("/salidas/nueva", response_class=HTMLResponse)
 def nueva_salida_form(request: Request, db: Session = Depends(get_db)):
     cats = categorias_salida(db)
-    return templates.TemplateResponse("salidas_form.html", {
+    return templates.TemplateResponse("salidas/form.html", {
         "request": request,
         "categorias": cats,
         "today": date.today().isoformat()
@@ -131,7 +131,7 @@ def ver_salida(tx_id: int, request: Request, db: Session = Depends(get_db)):
     tx = db.get(Transaccion, tx_id)
     if not tx or tx.tipo != "salida":
         return RedirectResponse(url="/salidas?error=Salida%20no%20encontrada", status_code=303)
-    return templates.TemplateResponse("salidas_show.html", {"request": request, "t": tx})
+    return templates.TemplateResponse("salidas/show.html", {"request": request, "t": tx})
 
 # EDITAR
 @router.get("/salidas/{tx_id}/editar", response_class=HTMLResponse)
@@ -140,7 +140,7 @@ def editar_salida_form(tx_id: int, request: Request, db: Session = Depends(get_d
     if not tx or tx.tipo != "salida":
         return RedirectResponse(url="/salidas?error=Salida%20no%20encontrada", status_code=303)
     cats = categorias_salida(db)
-    return templates.TemplateResponse("salidas_edit.html", {
+    return templates.TemplateResponse("salidas/edit.html", {
         "request": request, "t": tx, "categorias": cats
     })
 

@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 {% block content %}
-<h2 class="text-xl font-semibold mb-4">Registrar salida</h2>
+<h2 class="text-xl font-semibold mb-4">Registrar entrada</h2>
 
 {% if request.query_params.get('error') %}
   <div class="mb-4 text-sm rounded-lg border border-rose-700/40 bg-rose-900/40 text-rose-200 px-3 py-2">
@@ -8,11 +8,11 @@
   </div>
 {% endif %}
 
-<form method="post" action="/salidas" enctype="multipart/form-data" class="grid gap-4 max-w-3xl">
+<form method="post" action="/entradas" class="grid gap-4 max-w-2xl">
   <div class="grid md:grid-cols-3 gap-4">
     <div>
       <label class="block text-sm text-slate-300 mb-1">Fecha</label>
-      <input type="date" name="fecha" value="{{ today }}" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2" required>
+      <input type="date" name="fecha" value="{{ today }}" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm text-slate-300 mb-1">Monto</label>
@@ -39,37 +39,18 @@
           <option value="{{ c.id }}">{{ c.nombre }}</option>
         {% endfor %}
       </select>
-    </div>
-    <div>
-      <label class="block text-sm text-slate-300 mb-1">Concepto</label>
-      <input type="text" name="concepto" placeholder="Ej: Compra de insumos"
-             class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
-    </div>
-  </div>
-
-  <div class="grid md:grid-cols-2 gap-4">
-    <div>
-      <label class="block text-sm text-slate-300 mb-1">N° Documento (boleta/factura)</label>
-      <input type="text" name="numero_documento" placeholder="Ej: F-12345"
-             class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm text-slate-300 mb-1">Comprobante (opcional)</label>
-      <input type="file" name="documento" accept=".jpg,.jpeg,.png,.pdf"
-             class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
-      <p class="text-xs text-slate-400 mt-1">Se guarda en /static/docs_salidas/</p>
+      <p class="text-xs text-slate-400 mt-1">Si te falta una categoría, luego podrás crearla en <a class="underline" href="/categorias">Categorías</a>.</p>
     </div>
   </div>
 
   <div>
     <label class="block text-sm text-slate-300 mb-1">Descripción (opcional)</label>
-    <textarea name="descripcion" rows="3" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2"
-              placeholder="Notas adicionales..."></textarea>
+    <textarea name="descripcion" rows="3" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2" placeholder="Ej: Aporte mensual de socios, donación directa, etc."></textarea>
   </div>
 
   <div class="flex gap-3">
-    <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium">Guardar salida</button>
-    <a href="/salidas" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Cancelar</a>
+    <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium">Guardar entrada</button>
+    <a href="/transacciones" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Cancelar</a>
   </div>
 </form>
 {% endblock %}

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 {% block page_title %}{{ 'Nuevo usuario' if modo=='crear' else 'Editar usuario' }}{% endblock %}
 {% block content %}
 {% if request.query_params.get('error') %}

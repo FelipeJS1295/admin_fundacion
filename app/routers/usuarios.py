@@ -10,7 +10,7 @@ from app.models import User
 from app.auth import get_current_user, is_admin, hash_password, verify_password
 
 router = APIRouter(tags=["usuarios"])
-templates = Jinja2Templates(directory="templates")
+from app.core.templates import templates
 
 # --------- Helpers ---------
 def require_admin_or_redirect(user: User | None) -> RedirectResponse | None:
@@ -25,14 +25,14 @@ def usuarios_index(request: Request, user: User = Depends(get_current_user), db:
     if redir: return redir
 
     users = db.query(User).order_by(User.username).all()
-    return templates.TemplateResponse("usuarios_index.html", {"request": request, "users": users})
+    return templates.TemplateResponse("usuarios/index.html", {"request": request, "users": users})
 
 # --------- Admin: crear ---------
 @router.get("/usuarios/nuevo", response_class=HTMLResponse)
 def usuarios_nuevo(request: Request, user: User = Depends(get_current_user)):
     redir = require_admin_or_redirect(user)
     if redir: return redir
-    return templates.TemplateResponse("usuarios_form.html", {
+    return templates.TemplateResponse("usuarios/form.html", {
         "request": request, "modo": "crear", "u": None
     })
 
@@ -77,7 +77,7 @@ def usuarios_editar_form(uid: int, request: Request, user: User = Depends(get_cu
     u = db.get(User, uid)
     if not u:
         return RedirectResponse(url="/usuarios?error=No%20encontrado", status_code=303)
-    return templates.TemplateResponse("usuarios_form.html", {
+    return templates.TemplateResponse("usuarios/form.html", {
         "request": request, "modo": "editar", "u": u
     })
 
@@ -117,7 +117,7 @@ def usuarios_password_form(uid: int, request: Request, user: User = Depends(get_
     u = db.get(User, uid)
     if not u:
         return RedirectResponse(url="/usuarios?error=No%20encontrado", status_code=303)
-    return templates.TemplateResponse("usuarios_password.html", {"request": request, "u": u})
+    return templates.TemplateResponse("usuarios/password.html", {"request": request, "u": u})
 
 @router.post("/usuarios/{uid}/password")
 def usuarios_password(
@@ -145,7 +145,7 @@ def usuarios_password(
 def mi_password_form(request: Request, user: User = Depends(get_current_user)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
-    return templates.TemplateResponse("mi_password.html", {"request": request})
+    return templates.TemplateResponse("cuenta/mi_password.html", {"request": request})
 
 @router.post("/mi-password")
 def mi_password(
