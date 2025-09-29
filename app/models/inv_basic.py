@@ -4,7 +4,7 @@ from sqlalchemy import String, Integer, ForeignKey, DECIMAL, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 # Usa la Base de tu proyecto (ya existente)
-from app.models import Base
+from app.models.base import Base
 
 class InvCategoria(Base):
     __tablename__ = "inv_categoria"
