@@ -1,277 +1,455 @@
 {% extends "layouts/base.html" %}
 {% block content %}
-<h1 class="text-xl font-bold mb-4">Nuevo Paciente</h1>
+<div class="max-w-6xl mx-auto">
+  <header class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-semibold tracking-tight">Nuevo Paciente</h1>
+    <div class="text-sm text-slate-500">Los campos con <span class="text-rose-600">*</span> son obligatorios</div>
+  </header>
 
-<form method="post" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <!-- Columna 1 -->
-  <div class="space-y-3">
-    <label class="block">
-      <span>Nombres</span>
-      <input name="nombres" required class="border w-full px-2 py-1">
-    </label>
-
-    <label class="block">
-      <span>Apellidos</span>
-      <input name="apellidos" required class="border w-full px-2 py-1">
-    </label>
-
-    <label class="block">
-      <span>RUT</span>
-      <input name="rut" placeholder="12.345.678-9" required class="border w-full px-2 py-1">
-    </label>
-
-    <label class="block">
-      <span>Sexo</span>
-      <select name="sexo" class="border w-full px-2 py-1">
-        <option value="M">M</option>
-        <option value="F">F</option>
-        <option value="Otro">Otro</option>
-      </select>
-    </label>
-
-    <label class="block">
-      <span>Fecha de nacimiento</span>
-      <input type="date" name="fecha_nacimiento" required class="border w-full px-2 py-1">
-    </label>
-
-    <label class="block">
-      <span>Dirección</span>
-      <input name="direccion" required class="border w-full px-2 py-1">
-    </label>
-
-    <label class="block">
-      <span>Comuna (Región del Biobío)</span>
-      <select name="comuna_id" required class="border w-full px-2 py-1">
-        <option value="">Seleccione...</option>
-        <!-- Concepción -->
-        <option value="Concepción">Concepción</option>
-        <option value="Talcahuano">Talcahuano</option>
-        <option value="Hualpén">Hualpén</option>
-        <option value="San Pedro de la Paz">San Pedro de la Paz</option>
-        <option value="Chiguayante">Chiguayante</option>
-        <option value="Penco">Penco</option>
-        <option value="Tomé">Tomé</option>
-        <option value="Hualqui">Hualqui</option>
-        <option value="Santa Juana">Santa Juana</option>
-        <option value="Coronel">Coronel</option>
-        <option value="Lota">Lota</option>
-        <!-- Provincia Biobío -->
-        <option value="Los Ángeles">Los Ángeles</option>
-        <option value="Nacimiento">Nacimiento</option>
-        <option value="Laja">Laja</option>
-        <option value="San Rosendo">San Rosendo</option>
-        <option value="Santa Bárbara">Santa Bárbara</option>
-        <option value="Quilaco">Quilaco</option>
-        <option value="Quilleco">Quilleco</option>
-        <option value="Mulchén">Mulchén</option>
-        <option value="Negrete">Negrete</option>
-        <option value="Tucapel">Tucapel</option>
-        <option value="Antuco">Antuco</option>
-        <option value="Cabrero">Cabrero</option>
-        <option value="Yumbel">Yumbel</option>
-        <option value="Alto Biobío">Alto Biobío</option>
-        <!-- Arauco -->
-        <option value="Curanilahue">Curanilahue</option>
-        <option value="Arauco">Arauco</option>
-        <option value="Lebu">Lebu</option>
-        <option value="Los Álamos">Los Álamos</option>
-        <option value="Cañete">Cañete</option>
-        <option value="Contulmo">Contulmo</option>
-        <option value="Tirúa">Tirúa</option>
-      </select>
-    </label>
-  </div>
-
-  <!-- Columna 2 -->
-  <div class="space-y-3">
-    <label class="block">
-      <span>Teléfono</span>
-      <input name="telefono" class="border w-full px-2 py-1">
-    </label>
-
-    <label class="block">
-      <span>Email</span>
-      <input type="email" name="email" class="border w-full px-2 py-1">
-    </label>
-
-    <div class="grid grid-cols-2 gap-3">
-      <label class="block">
-        <span>Previsión</span>
-        <select name="prevision_salud" class="border w-full px-2 py-1">
-          <option value="">--</option>
-          <option value="Fonasa">Fonasa</option>
-          <option value="Isapre">Isapre</option>
-          <option value="Ninguna">Ninguna</option>
-        </select>
-      </label>
-
-      <label class="block">
-        <span>Movilidad</span>
-        <select name="movilidad" class="border w-full px-2 py-1">
-          <option value="">--</option>
-          <option value="Autónomo">Autónomo</option>
-          <option value="Asistido">Asistido</option>
-          <option value="Postrado">Postrado</option>
-        </select>
-      </label>
-
-      <label class="block">
-        <span>Dependencia</span>
-        <select name="dependencia" class="border w-full px-2 py-1">
-          <option value="">--</option>
-          <option value="Leve">Leve</option>
-          <option value="Moderada">Moderada</option>
-          <option value="Severa">Severa</option>
-        </select>
-      </label>
-
-      <label class="block">
-        <span>Vive solo</span>
-        <input type="checkbox" name="vive_solo" class="border">
-      </label>
-    </div>
-
-    <label class="block">
-      <span>Cuidador principal</span>
-      <input name="cuidador_principal" class="border w-full px-2 py-1">
-    </label>
-
-    <label class="block">
-      <span>Parentesco cuidador</span>
-      <input name="cuidador_parentesco" class="border w-full px-2 py-1">
-    </label>
-
-    <label class="block">
-      <span>Red de apoyo</span>
-      <textarea name="red_apoyo" class="border w-full px-2 py-1"></textarea>
-    </label>
-
-    <div class="grid grid-cols-2 gap-3">
-      <label class="block">
-        <span>Puntaje vulnerabilidad (0-100)</span>
-        <input type="number" name="puntaje_vulnerabilidad" min="0" max="100" class="border w-full px-2 py-1">
-      </label>
-      <label class="block">
-        <span>Activo</span>
-        <input type="checkbox" name="activo" checked class="border">
-      </label>
-    </div>
-
-    <label class="block">
-      <span>Observaciones</span>
-      <textarea name="observaciones" class="border w-full px-2 py-1"></textarea>
-    </label>
-  </div>
-
-  <!-- Fila completa: Enfermedades + Otras + Imagen -->
-  <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-      <label class="block mb-2 font-semibold">Enfermedades (múltiple)</label>
-
-      <!-- IMPORTANTE:
-           Enviamos como 'enfermedades_otras' (texto). El backend las crea si no existen.
-           Puedes seleccionar varias con CTRL/CMD.
-      -->
-      <select name="enfermedades_otras" multiple size="10" class="border w-full px-2 py-1">
-        <option>Hipertensión</option>
-        <option>Diabetes</option>
-        <option>Artrosis</option>
-        <option>Demencia/Alzheimer</option>
-        <option>Parkinson</option>
-        <option>EPOC</option>
-        <option>Insuficiencia cardíaca</option>
-        <option>Depresión</option>
-        <option>Osteoporosis</option>
-        <option>Insuficiencia renal crónica</option>
-        <option>Secuela de ACV</option>
-        <option>Cáncer</option>
-        <option>Hiperlipidemia</option>
-        <option>Hipotiroidismo</option>
-        <option>Incontinencia</option>
-        <option>Artritis reumatoide</option>
-        <option>Deterioro cognitivo leve</option>
-        <option>Desnutrición</option>
-        <option>Obesidad</option>
-        <option>Úlcera por presión</option>
-      </select>
-      <p class="text-sm text-gray-500 mt-1">Mantén CTRL/CMD para seleccionar varias.</p>
-
-      <div class="mt-3">
-        <label class="block font-semibold">Agregar “Otras”</label>
-        <div class="flex gap-2">
-          <input id="otra_enf_input" class="border w-full px-2 py-1" placeholder="Escribe y presiona Agregar">
-          <button type="button" id="btn_add_otra" class="bg-gray-800 text-white px-3 rounded">Agregar</button>
-        </div>
-        <div id="otras_list" class="mt-2 flex flex-wrap gap-2"></div>
-        <p class="text-xs text-slate-500 mt-1">
-          * Las “Otras” se enviarán como <code>enfermedades_otras</code> adicionales.
-        </p>
+  <form method="post" enctype="multipart/form-data" id="frmPaciente" class="grid gap-6">
+    <!-- SECCIÓN: Datos personales -->
+    <section class="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-800">
+      <div class="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 sticky top-0 rounded-t-2xl bg-white/80 dark:bg-slate-900/60 backdrop-blur">
+        <h2 class="text-lg font-medium">Datos personales</h2>
       </div>
-    </div>
 
-    <div>
-      <label class="block mb-2 font-semibold">Imagen del paciente</label>
-      <input type="file" name="imagen" accept=".jpg,.jpeg,.png,.webp" class="border w-full px-2 py-1">
-      <p class="text-sm text-gray-500">Formatos: JPG, PNG o WEBP.</p>
-    </div>
-  </div>
+      <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Nombres -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Nombres <span class="text-rose-600">*</span></span>
+          <input name="nombres" required autocomplete="given-name" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
 
-  <div class="md:col-span-2">
-    <button class="bg-green-600 text-white px-4 py-2 rounded">Guardar</button>
-    <a href="/pacientes" class="ml-3 px-4 py-2 border rounded">Cancelar</a>
-  </div>
-</form>
+        <!-- Apellidos -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Apellidos <span class="text-rose-600">*</span></span>
+          <input name="apellidos" required autocomplete="family-name" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <!-- RUT -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">RUT <span class="text-rose-600">*</span></span>
+          <input name="rut" id="rut" inputmode="text" placeholder="12.345.678-9" required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          <small id="rutHelp" class="text-xs text-slate-500">Se valida y formatea automáticamente.</small>
+        </label>
+
+        <!-- Sexo -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Sexo</span>
+          <select name="sexo" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </label>
+
+        <!-- Fecha nacimiento -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Fecha de nacimiento <span class="text-rose-600">*</span></span>
+          <input type="date" name="fecha_nacimiento" required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <!-- Teléfono -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Teléfono</span>
+          <input name="telefono" id="telefono" autocomplete="tel-national" placeholder="+56 9 1234 5678" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <!-- Email -->
+        <label class="block group md:col-span-2">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Email</span>
+          <input type="email" name="email" autocomplete="email" placeholder="correo@dominio.cl" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: Domicilio -->
+    <section class="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-800">
+      <div class="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 sticky top-0 rounded-t-2xl bg-white/80 dark:bg-slate-900/60 backdrop-blur">
+        <h2 class="text-lg font-medium">Domicilio</h2>
+      </div>
+      <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <label class="block group md:col-span-2">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Dirección <span class="text-rose-600">*</span></span>
+          <input name="direccion" required autocomplete="street-address" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <label class="block group md:col-span-2">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Comuna (Región del Biobío) <span class="text-rose-600">*</span></span>
+          <div class="relative">
+            <input id="comunaSearch" placeholder="Buscar comuna..." class="mt-1 w-full px-3 py-2 pr-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            <svg class="w-5 h-5 absolute right-3 top-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.3-4.3M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
+          </div>
+          <select name="comuna_id" id="comunaSelect" required class="mt-2 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="">Seleccione…</option>
+            <!-- Concepción -->
+            <option>Concepción</option><option>Talcahuano</option><option>Hualpén</option><option>San Pedro de la Paz</option><option>Chiguayante</option><option>Penco</option><option>Tomé</option><option>Hualqui</option><option>Santa Juana</option><option>Coronel</option><option>Lota</option>
+            <!-- Provincia Biobío -->
+            <option>Los Ángeles</option><option>Nacimiento</option><option>Laja</option><option>San Rosendo</option><option>Santa Bárbara</option><option>Quilaco</option><option>Quilleco</option><option>Mulchén</option><option>Negrete</option><option>Tucapel</option><option>Antuco</option><option>Cabrero</option><option>Yumbel</option><option>Alto Biobío</option>
+            <!-- Arauco -->
+            <option>Curanilahue</option><option>Arauco</option><option>Lebu</option><option>Los Álamos</option><option>Cañete</option><option>Contulmo</option><option>Tirúa</option>
+          </select>
+          <small class="text-xs text-slate-500">Escribe para filtrar, luego selecciona.</small>
+        </label>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: Salud y red de apoyo -->
+    <section class="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-800">
+      <div class="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 sticky top-0 rounded-t-2xl bg-white/80 dark:bg-slate-900/60 backdrop-blur">
+        <h2 class="text-lg font-medium">Salud y red de apoyo</h2>
+      </div>
+
+      <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="grid grid-cols-2 gap-4 md:col-span-2">
+          <!-- Previsión -->
+          <label class="block">
+            <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Previsión</span>
+            <select name="prevision_salud" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="">--</option>
+              <option>Fonasa</option>
+              <option>Isapre</option>
+              <option>Ninguna</option>
+            </select>
+          </label>
+
+          <!-- Movilidad -->
+          <label class="block">
+            <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Movilidad</span>
+            <select name="movilidad" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="">--</option>
+              <option>Autónomo</option>
+              <option>Asistido</option>
+              <option>Postrado</option>
+            </select>
+          </label>
+
+          <!-- Dependencia -->
+          <label class="block">
+            <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Dependencia</span>
+            <select name="dependencia" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="">--</option>
+              <option>Leve</option>
+              <option>Moderada</option>
+              <option>Severa</option>
+            </select>
+          </label>
+
+          <!-- Vive solo -->
+          <label class="inline-flex items-center gap-2 mt-6">
+            <input type="checkbox" name="vive_solo" class="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500" />
+            <span class="text-sm text-slate-700 dark:text-slate-200">Vive solo</span>
+          </label>
+        </div>
+
+        <!-- Cuidador -->
+        <label class="block">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Cuidador principal</span>
+          <input name="cuidador_principal" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <label class="block">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Parentesco cuidador</span>
+          <input name="cuidador_parentesco" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <!-- Red de apoyo -->
+        <label class="block md:col-span-2">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Red de apoyo</span>
+          <textarea name="red_apoyo" maxlength="500" data-counter="#cntApoyo" rows="3" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          <small id="cntApoyo" class="text-xs text-slate-500">0 / 500</small>
+        </label>
+
+        <!-- Puntaje / Activo -->
+        <div class="grid grid-cols-2 gap-4 md:col-span-2">
+          <label class="block">
+            <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Puntaje vulnerabilidad (0–100)</span>
+            <input type="number" name="puntaje_vulnerabilidad" min="0" max="100" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </label>
+          <label class="inline-flex items-center gap-2 mt-7">
+            <input type="checkbox" name="activo" checked class="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500" />
+            <span class="text-sm text-slate-700 dark:text-slate-200">Activo</span>
+          </label>
+        </div>
+
+        <!-- Observaciones -->
+        <label class="block md:col-span-2">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Observaciones</span>
+          <textarea name="observaciones" maxlength="1000" data-counter="#cntObs" rows="3" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          <small id="cntObs" class="text-xs text-slate-500">0 / 1000</small>
+        </label>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: Enfermedades + Imagen -->
+    <section class="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-800">
+      <div class="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 sticky top-0 rounded-t-2xl bg-white/80 dark:bg-slate-900/60 backdrop-blur">
+        <h2 class="text-lg font-medium">Enfermedades y fotografía</h2>
+      </div>
+
+      <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Enfermedades -->
+        <div>
+          <label class="block font-medium mb-2">Enfermedades (doble clic para agregar)</label>
+
+          <div class="flex gap-2 mb-2">
+            <input id="enfSearch" placeholder="Buscar…" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"/>
+            <button type="button" id="btnClearSearch" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Limpiar</button>
+          </div>
+
+          <div id="enfCatalogo" class="border rounded-xl h-64 overflow-auto p-2 space-y-1">
+            <ul id="enfList" class="space-y-1">
+              {% if enfermedades and enfermedades|length > 0 %}
+                {% for e in enfermedades %}
+                  <li>
+                    <button type="button" class="enf-item w-full text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-id="{{ e.id }}" data-name="{{ e.nombre }}">{{ e.nombre }}</button>
+                  </li>
+                {% endfor %}
+              {% else %}
+                {% set enf_fijas = [
+                  'Hipertensión','Diabetes','Artrosis','Demencia/Alzheimer','Parkinson','EPOC','Insuficiencia cardíaca','Depresión','Osteoporosis','Insuficiencia renal crónica','Secuela de ACV','Cáncer','Hiperlipidemia','Hipotiroidismo','Incontinencia','Artritis reumatoide','Deterioro cognitivo leve','Desnutrición','Obesidad','Úlcera por presión'
+                ] %}
+                {% for n in enf_fijas %}
+                  <li><button type="button" class="enf-item w-full text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-id="" data-name="{{ n }}">{{ n }}</button></li>
+                {% endfor %}
+              {% endif %}
+            </ul>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">Doble clic para añadir. Click en la “×” para quitar.</p>
+
+          <!-- Agregar manual -->
+          <div class="mt-3">
+            <label class="block font-medium mb-1">Agregar “otra” manualmente</label>
+            <div class="flex gap-2">
+              <input id="otra_enf_input" class="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Escribe y presiona Agregar">
+              <button type="button" id="btn_add_otra" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Agregar</button>
+            </div>
+          </div>
+
+          <!-- Chips seleccionadas -->
+          <div class="mt-3">
+            <label class="block font-medium mb-1">Seleccionadas</label>
+            <div id="enf_seleccionadas" class="flex flex-wrap gap-2"></div>
+            <p class="text-xs text-slate-500 mt-1">
+              Se envían como <code>enfermedades_ids[]</code> (existentes) y <code>enfermedades_otras[]</code> (nuevas).
+            </p>
+          </div>
+        </div>
+
+        <!-- Imagen -->
+        <div>
+          <label class="block font-medium mb-2">Imagen del paciente</label>
+          <input type="file" name="imagen" id="imagen" accept=".jpg,.jpeg,.png,.webp" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <p class="text-xs text-slate-500 mt-1">Formatos: JPG, PNG o WEBP. Máx 5MB.</p>
+
+          <div id="previewWrap" class="mt-3 hidden">
+            <img id="previewImg" class="w-48 h-48 object-cover rounded-xl ring-1 ring-slate-200 dark:ring-slate-800" alt="Previsualización">
+            <div class="mt-2">
+              <button type="button" id="btnClearImg" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Quitar imagen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Acciones -->
+    <div class="flex items-center gap-3">
+      <button id="btnSubmit" class="inline-flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        Guardar
+      </button>
+      <a href="/pacientes" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Cancelar</a>
+    </div>
+  </form>
+</div>
 
 <script>
-  // Gestionar "otras" como inputs múltiples name="enfermedades_otras"
-  const btn = document.getElementById('btn_add_otra');
-  const input = document.getElementById('otra_enf_input');
-  const list = document.getElementById('otras_list');
+/* === Utils === */
+const $ = (sel, ctx=document) => ctx.querySelector(sel);
+const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
 
-  btn.addEventListener('click', () => {
-    const val = (input.value || "").trim();
-    if (!val) return;
-    const wrap = document.createElement('span');
-    wrap.className = "inline-flex items-center gap-2 bg-gray-200 px-2 py-1 rounded";
-    wrap.textContent = val;
-    const hidden = document.createElement('input');
-    hidden.type = 'hidden';
-    hidden.name = 'enfermedades_otras';
-    hidden.value = val;
-    const x = document.createElement('button');
-    x.type = 'button';
-    x.textContent = '×';
-    x.className = 'ml-1';
-    x.onclick = () => wrap.remove();
-    wrap.appendChild(hidden);
-    wrap.appendChild(x);
-    list.appendChild(wrap);
-    input.value = '';
-  });
+function debounce(fn, ms=250){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
 
-  // Validación básica de RUT (front)
-  function validaRut(rut) {
-    rut = rut.replace(/\./g,'').replace(/\s/g,'').toUpperCase();
-    if (!rut.includes('-')) return false;
-    const [cuerpo, dv] = rut.split('-');
-    if (!/^\d+$/.test(cuerpo)) return false;
-    const fac = [2,3,4,5,6,7];
-    let suma=0, i=0;
-    for (let n of cuerpo.split('').reverse()) {
-      suma += parseInt(n,10) * fac[i];
-      i = (i+1) % fac.length;
-    }
-    const resto = 11 - (suma % 11);
-    const dvCalc = (resto===11) ? '0' : (resto===10) ? 'K' : String(resto);
-    return dvCalc === dv;
+/* === Contadores de texto === */
+$$('textarea[data-counter]').forEach(el=>{
+  const out = $(el.getAttribute('data-counter'));
+  const max = parseInt(el.getAttribute('maxlength')||'0',10);
+  const upd = ()=> { out.textContent = `${el.value.length} / ${max}`; };
+  el.addEventListener('input', upd); upd();
+});
+
+/* === RUT: formato + validación === */
+const inRut = $('#rut');
+const rutHelp = $('#rutHelp');
+
+function cleanRut(v){ return (v||'').replace(/\./g,'').replace(/\s/g,'').toUpperCase(); }
+function formatRut(v){
+  v = cleanRut(v);
+  if(!v) return '';
+  let [cuerpo, dv] = v.split('-');
+  if(!dv && v.length>1){ dv = v.slice(-1); cuerpo = v.slice(0,-1); }
+  const rev = cuerpo.split('').reverse();
+  const chunks = [];
+  for (let i=0;i<rev.length;i++){
+    chunks.push(rev[i]);
+    if ((i+1)%3===0 && (i+1)!==rev.length) chunks.push('.');
   }
-  document.querySelector('form').addEventListener('submit', (e)=>{
-    const inputRut = document.querySelector('input[name="rut"]');
-    if (!validaRut(inputRut.value)) {
-      e.preventDefault();
-      alert('RUT inválido');
-      inputRut.focus();
-    }
+  return chunks.reverse().join('') + (dv ? '-'+dv : '');
+}
+function validaRut(v){
+  v = cleanRut(v);
+  if(!v.includes('-')) return false;
+  const [cuerpo, dv] = v.split('-');
+  if(!/^\d+$/.test(cuerpo)) return false;
+  const fac = [2,3,4,5,6,7];
+  let suma=0,i=0;
+  for(const n of cuerpo.split('').reverse()){
+    suma += parseInt(n,10)*fac[i];
+    i = (i+1)%fac.length;
+  }
+  const resto = 11-(suma%11);
+  const dvCalc = (resto===11) ? '0' : (resto===10) ? 'K' : String(resto);
+  return dvCalc === dv;
+}
+inRut.addEventListener('input', e=>{
+  const pos = inRut.selectionStart;
+  const val = formatRut(inRut.value);
+  inRut.value = val;
+  inRut.setSelectionRange(pos,pos);
+});
+inRut.addEventListener('blur', ()=>{
+  const ok = validaRut(inRut.value);
+  rutHelp.textContent = ok ? 'RUT válido.' : 'RUT inválido.';
+  rutHelp.className = 'text-xs ' + (ok ? 'text-emerald-600' : 'text-rose-600');
+});
+
+/* === Teléfono: máscara simple +56 9 XXXX XXXX === */
+const inTel = $('#telefono');
+inTel?.addEventListener('input', ()=>{
+  let v = inTel.value.replace(/\D/g,'');
+  if (v.startsWith('56')) v = v.slice(2);
+  if (v.startsWith('0')) v = v.slice(1);
+  if (!v.startsWith('9')) v = '9'+v; // celular
+  v = v.slice(0,9);
+  const f = v.length<=1 ? `+56 ${v}` :
+            v.length<=5 ? `+56 ${v.slice(0,1)} ${v.slice(1)}` :
+            `+56 ${v.slice(0,1)} ${v.slice(1,5)} ${v.slice(5)}`;
+  inTel.value = f.trim();
+});
+
+/* === Comuna: filtro de búsqueda === */
+const comunaSearch = $('#comunaSearch');
+const comunaSelect = $('#comunaSelect');
+const filterComunas = debounce(()=>{
+  const q = (comunaSearch.value||'').toLowerCase();
+  let firstVisible = null;
+  $$('#comunaSelect option').forEach(opt=>{
+    if (!opt.value) return; // deja "Seleccione"
+    const show = opt.textContent.toLowerCase().includes(q);
+    opt.hidden = !show;
+    if (show && !firstVisible) firstVisible = opt;
   });
+  // no autoseleccionamos para no confundir
+}, 100);
+comunaSearch.addEventListener('input', filterComunas);
+$('#btnClearSearch')?.addEventListener('click', ()=>{
+  comunaSearch.value = '';
+  filterComunas();
+});
+
+/* === Enfermedades: búsqueda + doble clic → chips === */
+const enfSearch = $('#enfSearch');
+const enfList = $('#enfList');
+const contChips = $('#enf_seleccionadas');
+
+function addChip({id, name}) {
+  // evitar duplicados por nombre (case-insensitive)
+  const exists = $(`.chip[data-name="${CSS.escape(name.toLowerCase())}"]`, contChips);
+  if (exists) return;
+  const chip = document.createElement('span');
+  chip.className = 'chip inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200';
+  chip.dataset.name = name.toLowerCase();
+  chip.innerHTML = `<span class="text-sm">${name}</span>
+    <button type="button" class="remove text-emerald-600 hover:text-emerald-800 dark:hover:text-emerald-100" aria-label="Quitar">×</button>`;
+  const hidden = document.createElement('input');
+  hidden.type = 'hidden';
+  hidden.value = id ? id : name;
+  hidden.name = id ? 'enfermedades_ids[]' : 'enfermedades_otras[]';
+  chip.appendChild(hidden);
+  contChips.appendChild(chip);
+
+  chip.querySelector('.remove').addEventListener('click', ()=> chip.remove());
+}
+
+enfList.addEventListener('dblclick', (e)=>{
+  const btn = e.target.closest('.enf-item');
+  if (!btn) return;
+  addChip({id: btn.dataset.id || '', name: btn.dataset.name});
+});
+
+enfSearch.addEventListener('input', debounce(()=>{
+  const q = (enfSearch.value||'').toLowerCase();
+  $$('.enf-item', enfList).forEach(b=>{
+    const show = b.dataset.name.toLowerCase().includes(q);
+    b.parentElement.hidden = !show;
+  });
+}, 100));
+
+/* Agregar “otra” manual */
+const otraInput = $('#otra_enf_input');
+$('#btn_add_otra').addEventListener('click', ()=>{
+  const val = (otraInput.value||'').trim();
+  if (!val) return;
+  addChip({id:'', name:val});
+  otraInput.value = '';
+});
+
+/* === Imagen: preview + limpiar === */
+const inImg = $('#imagen');
+const wrapPrev = $('#previewWrap');
+const imgPrev = $('#previewImg');
+const btnClearImg = $('#btnClearImg');
+
+inImg.addEventListener('change', ()=>{
+  const f = inImg.files?.[0];
+  if (!f) { wrapPrev.classList.add('hidden'); return; }
+  if (f.size > 5*1024*1024) {
+    alert('La imagen supera los 5MB.');
+    inImg.value = '';
+    wrapPrev.classList.add('hidden');
+    return;
+  }
+  const url = URL.createObjectURL(f);
+  imgPrev.src = url;
+  wrapPrev.classList.remove('hidden');
+});
+
+btnClearImg.addEventListener('click', ()=>{
+  inImg.value = '';
+  wrapPrev.classList.add('hidden');
+  imgPrev.src = '';
+});
+
+/* === Validación de envío === */
+const form = $('#frmPaciente');
+const btnSubmit = $('#btnSubmit');
+
+function formOk(){
+  const reqs = $$('[name="nombres"],[name="apellidos"],[name="rut"],[name="fecha_nacimiento"],[name="direccion"],#comunaSelect');
+  const allFilled = reqs.every(i=> (i.type==='select-one') ? i.value.trim()!=='' : (i.value||'').trim()!=='');
+  const rutValid = validaRut(inRut.value);
+  return allFilled && rutValid;
+}
+function toggleSubmit(){ btnSubmit.disabled = !formOk(); }
+form.addEventListener('input', debounce(toggleSubmit, 120));
+form.addEventListener('change', toggleSubmit);
+document.addEventListener('DOMContentLoaded', toggleSubmit);
+
+form.addEventListener('submit', (e)=>{
+  if (!formOk()){
+    e.preventDefault();
+    alert('Revisa los campos obligatorios y el RUT.');
+  }
+});
 </script>
 {% endblock %}
