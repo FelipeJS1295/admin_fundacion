@@ -1,4 +1,8 @@
+# app/models/__init__.py
 from .base import Base
 
-# opcional: si quieres reexportar nombres concretos
-# from .inv_basic import InvCategoria, UnidadMedida, InventarioItem
+# Re-export para compatibilidad con: from app.models import Transaccion, Categoria, User
+from .finance import Transaccion, Categoria, User
+
+# NO importes inv_basic aquí para evitar ciclos; impórtalo donde lo uses:
+# from app.models.inv_basic import InvCategoria, UnidadMedida, InventarioItem
