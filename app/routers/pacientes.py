@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import datetime
 import os, shutil
+from pathlib import Path
 
 from app.db import get_db
 from app.models.pacientes import Paciente, Enfermedad, PacienteEnfermedad, Comuna, SexoEnum, PrevisionEnum, MovilidadEnum, DependenciaEnum
@@ -12,7 +13,9 @@ from app.models.pacientes import Paciente, Enfermedad, PacienteEnfermedad, Comun
 router = APIRouter(prefix="/pacientes", tags=["Pacientes"])
 templates = Jinja2Templates(directory="templates")  # asegúrate de apuntar a tu carpeta templates
 
-IMAGES_DIR = "/var/www/fundacion/pacientes/imagenes"
+BASE_DIR = Path(__file__).resolve().parents[2]
+IMAGES_DIR = BASE_DIR / "static" / "pacientes"
+IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 os.makedirs(IMAGES_DIR, exist_ok=True)
 
 # --- util RUT ---
@@ -146,10 +149,10 @@ async def pacientes_store(
         if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
             raise HTTPException(400, detail="Formato de imagen no soportado")
         filename = f"pac_{p.id}{ext}"
-        dest = os.path.join(IMAGES_DIR, filename)
+        dest = IMAGES_DIR / filename
         with open(dest, "wb") as f:
             shutil.copyfileobj(imagen.file, f)
-        p.imagen_path = dest
+        p.imagen_path = f"static/pacientes/{filename}"
 
     db.commit()
     return RedirectResponse(url=f"/pacientes/{p.id}", status_code=303)

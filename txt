@@ -7,3 +7,5 @@ cd /srv/www/admin_fundacion
 mysql -u root -p
 
 USE fundacion_contabilidad;
+
+log: sudo journalctl -u admin_fundacion -n 200 --no-pager
