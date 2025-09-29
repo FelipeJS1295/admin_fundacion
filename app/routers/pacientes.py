@@ -3,9 +3,10 @@ from fastapi import APIRouter, Request, Depends, Form, UploadFile, File, HTTPExc
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import datetime
 from pathlib import Path
-import os, shutil
+import os, shutil, unicodedata
 
 from app.db import get_db
 from app.models.pacientes import (
@@ -37,6 +38,10 @@ def validar_rut_chileno(rut: str) -> bool:
     resto = 11 - (suma % 11)
     dv_calc = "0" if resto == 11 else "K" if resto == 10 else str(resto)
     return dv_calc == dv
+
+def _norm_str(s: str) -> str:
+    # Normaliza acentos y espacios
+    return unicodedata.normalize("NFC", (s or "").strip())
 
 # --- listado ---
 @router.get("/")
@@ -70,7 +75,7 @@ def pacientes_crear(request: Request, db: Session = Depends(get_db)):
     enfermedades = db.query(Enfermedad).order_by(Enfermedad.nombre).all()
     return templates.TemplateResponse("pacientes/create.html", {
         "request": request,
-        "enfermedades": enfermedades,  # por si usas el select por IDs además de 'otras'
+        "enfermedades": enfermedades,  # por si usas select por IDs además de 'otras'
         "sexo_opts": [e.value for e in SexoEnum],
         "prevision_opts": [e.value for e in PrevisionEnum],
         "movilidad_opts": [e.value for e in MovilidadEnum],
@@ -92,7 +97,7 @@ async def pacientes_store(
     fecha_nacimiento: str = Form(...),  # "YYYY-MM-DD"
     direccion: str = Form(...),
 
-    # Opción A: puede venir nombre de comuna o id
+    # Opción A: puede venir nombre de comuna o id (lo tratamos como str)
     comuna_id: str = Form(...),
 
     telefono: str | None = Form(None),
@@ -123,9 +128,17 @@ async def pacientes_store(
     try:
         comuna_id_int = int(comuna_id)
     except ValueError:
-        c = db.query(Comuna).filter(Comuna.nombre == comuna_id).first()
+        nombre_busca = _norm_str(comuna_id)
+        c = (
+            db.query(Comuna)
+              .filter(func.lower(Comuna.nombre) == func.lower(nombre_busca))
+              .first()
+        )
         if not c:
-            raise HTTPException(400, detail="Comuna no válida")
+            # Si no existe, la creamos (útil cuando las comunas del template son las únicas)
+            c = Comuna(nombre=nombre_busca)
+            db.add(c)
+            db.flush()
         comuna_id_int = c.id
 
     # crear paciente
@@ -158,10 +171,10 @@ async def pacientes_store(
 
     # Enfermedades por nombre (otras)
     for nombre in (enfermedades_otras or []):
-        nombre = (nombre or "").strip()
+        nombre = _norm_str(nombre)
         if not nombre:
             continue
-        existente = db.query(Enfermedad).filter(Enfermedad.nombre.ilike(nombre)).first()
+        existente = db.query(Enfermedad).filter(func.lower(Enfermedad.nombre) == func.lower(nombre)).first()
         enf = existente or Enfermedad(nombre=nombre)
         if not existente:
             db.add(enf); db.flush()
