@@ -9,36 +9,79 @@
       <span>Nombres</span>
       <input name="nombres" required class="border w-full px-2 py-1">
     </label>
+
     <label class="block">
       <span>Apellidos</span>
       <input name="apellidos" required class="border w-full px-2 py-1">
     </label>
+
     <label class="block">
       <span>RUT</span>
       <input name="rut" placeholder="12.345.678-9" required class="border w-full px-2 py-1">
     </label>
+
     <label class="block">
       <span>Sexo</span>
       <select name="sexo" class="border w-full px-2 py-1">
-        {% for s in sexo_opts %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+        <option value="M">M</option>
+        <option value="F">F</option>
+        <option value="Otro">Otro</option>
       </select>
     </label>
+
     <label class="block">
       <span>Fecha de nacimiento</span>
       <input type="date" name="fecha_nacimiento" required class="border w-full px-2 py-1">
     </label>
+
     <label class="block">
       <span>Dirección</span>
       <input name="direccion" required class="border w-full px-2 py-1">
     </label>
+
     <label class="block">
-      <span>Comuna</span>
+      <span>Comuna (Región del Biobío)</span>
       <select name="comuna_id" required class="border w-full px-2 py-1">
         <option value="">Seleccione...</option>
-        {% for c in comunas %}
-        <option value="{{ c.id }}">{{ c.nombre }}</option>
-        {% endfor %}
+        <!-- Biobío: Concepción -->
+        <option value="CONCEPCION_ID">Concepción</option>
+        <option value="TALCAHUANO_ID">Talcahuano</option>
+        <option value="HUALPEN_ID">Hualpén</option>
+        <option value="SAN_PEDRO_DE_LA_PAZ_ID">San Pedro de la Paz</option>
+        <option value="CHIGUAYANTE_ID">Chiguayante</option>
+        <option value="PENCO_ID">Penco</option>
+        <option value="TOME_ID">Tomé</option>
+        <option value="HUALQUI_ID">Hualqui</option>
+        <option value="SANTA_JUANA_ID">Santa Juana</option>
+        <option value="CORONEL_ID">Coronel</option>
+        <option value="LOTA_ID">Lota</option>
+        <!-- Biobío: Los Ángeles / Provincia Biobío -->
+        <option value="LOS_ANGELES_ID">Los Ángeles</option>
+        <option value="NACIMIENTO_ID">Nacimiento</option>
+        <option value="LAJA_ID">Laja</option>
+        <option value="SAN_ROSENDO_ID">San Rosendo</option>
+        <option value="SANTA_BARBARA_ID">Santa Bárbara</option>
+        <option value="QUILACO_ID">Quilaco</option>
+        <option value="QUILLECO_ID">Quilleco</option>
+        <option value="MULCHEN_ID">Mulchén</option>
+        <option value="NEGRETE_ID">Negrete</option>
+        <option value="TUCAPEL_ID">Tucapel</option>
+        <option value="ANTUCO_ID">Antuco</option>
+        <option value="CABRERO_ID">Cabrero</option>
+        <option value="YUMBEL_ID">Yumbel</option>
+        <option value="ALTO_BIOBIO_ID">Alto Biobío</option>
+        <!-- Biobío: Arauco -->
+        <option value="CURANILAHUE_ID">Curanilahue</option>
+        <option value="ARAUCO_ID">Arauco</option>
+        <option value="LEBU_ID">Lebu</option>
+        <option value="LOS_ALAMOS_ID">Los Álamos</option>
+        <option value="CANETE_ID">Cañete</option>
+        <option value="CONTULMO_ID">Contulmo</option>
+        <option value="TIRUA_ID">Tirúa</option>
       </select>
+      <p class="text-xs text-slate-500 mt-1">
+        * Reemplaza los valores *_ID por los IDs reales de tu tabla <code>comunas</code> (o si ya existen en BD, déjalos tal cual).
+      </p>
     </label>
   </div>
 
@@ -48,6 +91,7 @@
       <span>Teléfono</span>
       <input name="telefono" class="border w-full px-2 py-1">
     </label>
+
     <label class="block">
       <span>Email</span>
       <input type="email" name="email" class="border w-full px-2 py-1">
@@ -58,23 +102,32 @@
         <span>Previsión</span>
         <select name="prevision_salud" class="border w-full px-2 py-1">
           <option value="">--</option>
-          {% for x in prevision_opts %}<option value="{{ x }}">{{ x }}</option>{% endfor %}
+          <option value="Fonasa">Fonasa</option>
+          <option value="Isapre">Isapre</option>
+          <option value="Ninguna">Ninguna</option>
         </select>
       </label>
+
       <label class="block">
         <span>Movilidad</span>
         <select name="movilidad" class="border w-full px-2 py-1">
           <option value="">--</option>
-          {% for x in movilidad_opts %}<option value="{{ x }}">{{ x }}</option>{% endfor %}
+          <option value="Autónomo">Autónomo</option>
+          <option value="Asistido">Asistido</option>
+          <option value="Postrado">Postrado</option>
         </select>
       </label>
+
       <label class="block">
         <span>Dependencia</span>
         <select name="dependencia" class="border w-full px-2 py-1">
           <option value="">--</option>
-          {% for x in dependencia_opts %}<option value="{{ x }}">{{ x }}</option>{% endfor %}
+          <option value="Leve">Leve</option>
+          <option value="Moderada">Moderada</option>
+          <option value="Severa">Severa</option>
         </select>
       </label>
+
       <label class="block">
         <span>Vive solo</span>
         <input type="checkbox" name="vive_solo" class="border">
@@ -85,6 +138,7 @@
       <span>Cuidador principal</span>
       <input name="cuidador_principal" class="border w-full px-2 py-1">
     </label>
+
     <label class="block">
       <span>Parentesco cuidador</span>
       <input name="cuidador_parentesco" class="border w-full px-2 py-1">
@@ -116,10 +170,32 @@
   <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
     <div>
       <label class="block mb-2 font-semibold">Enfermedades (múltiple)</label>
-      <select name="enfermedades_ids" multiple size="8" class="border w-full px-2 py-1">
-        {% for e in enfermedades %}
-          <option value="{{ e.id }}">{{ e.nombre }}</option>
-        {% endfor %}
+
+      <!-- IMPORTANTE:
+           Enviamos como 'enfermedades_otras' (texto). El backend las crea si no existen.
+           Puedes seleccionar varias con CTRL/CMD.
+      -->
+      <select name="enfermedades_otras" multiple size="10" class="border w-full px-2 py-1">
+        <option>Hipertensión</option>
+        <option>Diabetes</option>
+        <option>Artrosis</option>
+        <option>Demencia/Alzheimer</option>
+        <option>Parkinson</option>
+        <option>EPOC</option>
+        <option>Insuficiencia cardíaca</option>
+        <option>Depresión</option>
+        <option>Osteoporosis</option>
+        <option>Insuficiencia renal crónica</option>
+        <option>Secuela de ACV</option>
+        <option>Cáncer</option>
+        <option>Hiperlipidemia</option>
+        <option>Hipotiroidismo</option>
+        <option>Incontinencia</option>
+        <option>Artritis reumatoide</option>
+        <option>Deterioro cognitivo leve</option>
+        <option>Desnutrición</option>
+        <option>Obesidad</option>
+        <option>Úlcera por presión</option>
       </select>
       <p class="text-sm text-gray-500 mt-1">Mantén CTRL/CMD para seleccionar varias.</p>
 
@@ -127,9 +203,12 @@
         <label class="block font-semibold">Agregar “Otras”</label>
         <div class="flex gap-2">
           <input id="otra_enf_input" class="border w-full px-2 py-1" placeholder="Escribe y presiona Agregar">
-          <button type="button" id="btn_add_otra" class="bg-gray-800 text-white px-3">Agregar</button>
+          <button type="button" id="btn_add_otra" class="bg-gray-800 text-white px-3 rounded">Agregar</button>
         </div>
         <div id="otras_list" class="mt-2 flex flex-wrap gap-2"></div>
+        <p class="text-xs text-slate-500 mt-1">
+          * Las “Otras” se enviarán como <code>enfermedades_otras</code> adicionales.
+        </p>
       </div>
     </div>
 
@@ -147,7 +226,7 @@
 </form>
 
 <script>
-  // gestionar "otras" como inputs múltiples name="enfermedades_otras"
+  // Gestionar "otras" como inputs múltiples name="enfermedades_otras"
   const btn = document.getElementById('btn_add_otra');
   const input = document.getElementById('otra_enf_input');
   const list = document.getElementById('otras_list');
@@ -173,29 +252,29 @@
     input.value = '';
   });
 
+  // Validación básica de RUT (front)
   function validaRut(rut) {
-  rut = rut.replace(/\./g,'').replace(/\s/g,'').toUpperCase();
-  if (!rut.includes('-')) return false;
-  const [cuerpo, dv] = rut.split('-');
-  if (!/^\d+$/.test(cuerpo)) return false;
-  const fac = [2,3,4,5,6,7];
-  let suma=0, i=0;
-  for (let n of cuerpo.split('').reverse()) {
-    suma += parseInt(n,10) * fac[i];
-    i = (i+1) % fac.length;
+    rut = rut.replace(/\./g,'').replace(/\s/g,'').toUpperCase();
+    if (!rut.includes('-')) return false;
+    const [cuerpo, dv] = rut.split('-');
+    if (!/^\d+$/.test(cuerpo)) return false;
+    const fac = [2,3,4,5,6,7];
+    let suma=0, i=0;
+    for (let n of cuerpo.split('').reverse()) {
+      suma += parseInt(n,10) * fac[i];
+      i = (i+1) % fac.length;
+    }
+    const resto = 11 - (suma % 11);
+    const dvCalc = (resto===11) ? '0' : (resto===10) ? 'K' : String(resto);
+    return dvCalc === dv;
   }
-  const resto = 11 - (suma % 11);
-  const dvCalc = (resto===11) ? '0' : (resto===10) ? 'K' : String(resto);
-  return dvCalc === dv;
-}
-document.querySelector('form').addEventListener('submit', (e)=>{
-  const input = document.querySelector('input[name="rut"]');
-  if (!validaRut(input.value)) {
-    e.preventDefault();
-    alert('RUT inválido');
-    input.focus();
-  }
-});
-
+  document.querySelector('form').addEventListener('submit', (e)=>{
+    const inputRut = document.querySelector('input[name="rut"]');
+    if (!validaRut(inputRut.value)) {
+      e.preventDefault();
+      alert('RUT inválido');
+      inputRut.focus();
+    }
+  });
 </script>
 {% endblock %}
