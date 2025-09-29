@@ -54,6 +54,25 @@
       </div>
     </details>
 
+    {# ---------- PACIENTES ---------- #}
+    {% set open_pac = path.startswith('/pacientes') %}
+    <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if open_pac else '' }}>
+      <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/60 cursor-pointer select-none">
+        <div class="flex items-center gap-2">
+          <!-- ícono usuario-mayor -->
+          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.33 0-9 1.67-9 5v3h18v-3c0-3.33-5.67-5-9-5Z"/>
+          </svg>
+          <span class="font-medium">Pacientes</span>
+        </div>
+        <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg>
+      </summary>
+      <div class="bg-slate-900/40 p-2">
+        <a href="/pacientes" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/pacientes') and path == '/pacientes' else 'hover:bg-slate-800/60 text-slate-300' }}">Listado</a>
+        <a href="/pacientes/crear" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/pacientes/crear') else 'hover:bg-slate-800/60 text-slate-300' }}">Nuevo paciente</a>
+      </div>
+    </details>
+
     <a href="/usuarios"
        class="flex items-center gap-3 px-3 py-2 rounded-lg border
               {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/usuarios') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}">

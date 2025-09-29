@@ -1,0 +1,201 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<h1 class="text-xl font-bold mb-4">Nuevo Paciente</h1>
+
+<form method="post" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <!-- Columna 1 -->
+  <div class="space-y-3">
+    <label class="block">
+      <span>Nombres</span>
+      <input name="nombres" required class="border w-full px-2 py-1">
+    </label>
+    <label class="block">
+      <span>Apellidos</span>
+      <input name="apellidos" required class="border w-full px-2 py-1">
+    </label>
+    <label class="block">
+      <span>RUT</span>
+      <input name="rut" placeholder="12.345.678-9" required class="border w-full px-2 py-1">
+    </label>
+    <label class="block">
+      <span>Sexo</span>
+      <select name="sexo" class="border w-full px-2 py-1">
+        {% for s in sexo_opts %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="block">
+      <span>Fecha de nacimiento</span>
+      <input type="date" name="fecha_nacimiento" required class="border w-full px-2 py-1">
+    </label>
+    <label class="block">
+      <span>Dirección</span>
+      <input name="direccion" required class="border w-full px-2 py-1">
+    </label>
+    <label class="block">
+      <span>Comuna</span>
+      <select name="comuna_id" required class="border w-full px-2 py-1">
+        <option value="">Seleccione...</option>
+        {% for c in comunas %}
+        <option value="{{ c.id }}">{{ c.nombre }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+
+  <!-- Columna 2 -->
+  <div class="space-y-3">
+    <label class="block">
+      <span>Teléfono</span>
+      <input name="telefono" class="border w-full px-2 py-1">
+    </label>
+    <label class="block">
+      <span>Email</span>
+      <input type="email" name="email" class="border w-full px-2 py-1">
+    </label>
+
+    <div class="grid grid-cols-2 gap-3">
+      <label class="block">
+        <span>Previsión</span>
+        <select name="prevision_salud" class="border w-full px-2 py-1">
+          <option value="">--</option>
+          {% for x in prevision_opts %}<option value="{{ x }}">{{ x }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="block">
+        <span>Movilidad</span>
+        <select name="movilidad" class="border w-full px-2 py-1">
+          <option value="">--</option>
+          {% for x in movilidad_opts %}<option value="{{ x }}">{{ x }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="block">
+        <span>Dependencia</span>
+        <select name="dependencia" class="border w-full px-2 py-1">
+          <option value="">--</option>
+          {% for x in dependencia_opts %}<option value="{{ x }}">{{ x }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="block">
+        <span>Vive solo</span>
+        <input type="checkbox" name="vive_solo" class="border">
+      </label>
+    </div>
+
+    <label class="block">
+      <span>Cuidador principal</span>
+      <input name="cuidador_principal" class="border w-full px-2 py-1">
+    </label>
+    <label class="block">
+      <span>Parentesco cuidador</span>
+      <input name="cuidador_parentesco" class="border w-full px-2 py-1">
+    </label>
+
+    <label class="block">
+      <span>Red de apoyo</span>
+      <textarea name="red_apoyo" class="border w-full px-2 py-1"></textarea>
+    </label>
+
+    <div class="grid grid-cols-2 gap-3">
+      <label class="block">
+        <span>Puntaje vulnerabilidad (0-100)</span>
+        <input type="number" name="puntaje_vulnerabilidad" min="0" max="100" class="border w-full px-2 py-1">
+      </label>
+      <label class="block">
+        <span>Activo</span>
+        <input type="checkbox" name="activo" checked class="border">
+      </label>
+    </div>
+
+    <label class="block">
+      <span>Observaciones</span>
+      <textarea name="observaciones" class="border w-full px-2 py-1"></textarea>
+    </label>
+  </div>
+
+  <!-- Fila completa: Enfermedades + Otras + Imagen -->
+  <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label class="block mb-2 font-semibold">Enfermedades (múltiple)</label>
+      <select name="enfermedades_ids" multiple size="8" class="border w-full px-2 py-1">
+        {% for e in enfermedades %}
+          <option value="{{ e.id }}">{{ e.nombre }}</option>
+        {% endfor %}
+      </select>
+      <p class="text-sm text-gray-500 mt-1">Mantén CTRL/CMD para seleccionar varias.</p>
+
+      <div class="mt-3">
+        <label class="block font-semibold">Agregar “Otras”</label>
+        <div class="flex gap-2">
+          <input id="otra_enf_input" class="border w-full px-2 py-1" placeholder="Escribe y presiona Agregar">
+          <button type="button" id="btn_add_otra" class="bg-gray-800 text-white px-3">Agregar</button>
+        </div>
+        <div id="otras_list" class="mt-2 flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <div>
+      <label class="block mb-2 font-semibold">Imagen del paciente</label>
+      <input type="file" name="imagen" accept=".jpg,.jpeg,.png,.webp" class="border w-full px-2 py-1">
+      <p class="text-sm text-gray-500">Formatos: JPG, PNG o WEBP.</p>
+    </div>
+  </div>
+
+  <div class="md:col-span-2">
+    <button class="bg-green-600 text-white px-4 py-2 rounded">Guardar</button>
+    <a href="/pacientes" class="ml-3 px-4 py-2 border rounded">Cancelar</a>
+  </div>
+</form>
+
+<script>
+  // gestionar "otras" como inputs múltiples name="enfermedades_otras"
+  const btn = document.getElementById('btn_add_otra');
+  const input = document.getElementById('otra_enf_input');
+  const list = document.getElementById('otras_list');
+
+  btn.addEventListener('click', () => {
+    const val = (input.value || "").trim();
+    if (!val) return;
+    const wrap = document.createElement('span');
+    wrap.className = "inline-flex items-center gap-2 bg-gray-200 px-2 py-1 rounded";
+    wrap.textContent = val;
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = 'enfermedades_otras';
+    hidden.value = val;
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.textContent = '×';
+    x.className = 'ml-1';
+    x.onclick = () => wrap.remove();
+    wrap.appendChild(hidden);
+    wrap.appendChild(x);
+    list.appendChild(wrap);
+    input.value = '';
+  });
+
+  function validaRut(rut) {
+  rut = rut.replace(/\./g,'').replace(/\s/g,'').toUpperCase();
+  if (!rut.includes('-')) return false;
+  const [cuerpo, dv] = rut.split('-');
+  if (!/^\d+$/.test(cuerpo)) return false;
+  const fac = [2,3,4,5,6,7];
+  let suma=0, i=0;
+  for (let n of cuerpo.split('').reverse()) {
+    suma += parseInt(n,10) * fac[i];
+    i = (i+1) % fac.length;
+  }
+  const resto = 11 - (suma % 11);
+  const dvCalc = (resto===11) ? '0' : (resto===10) ? 'K' : String(resto);
+  return dvCalc === dv;
+}
+document.querySelector('form').addEventListener('submit', (e)=>{
+  const input = document.querySelector('input[name="rut"]');
+  if (!validaRut(input.value)) {
+    e.preventDefault();
+    alert('RUT inválido');
+    input.focus();
+  }
+});
+
+</script>
+{% endblock %}

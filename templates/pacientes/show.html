@@ -1,0 +1,39 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<h1 class="text-xl font-bold mb-4">Paciente #{{ p.id }}</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="md:col-span-2 space-y-2">
+    <div><strong>Nombre:</strong> {{ p.nombres }} {{ p.apellidos }}</div>
+    <div><strong>RUT:</strong> {{ p.rut }}</div>
+    <div><strong>Sexo:</strong> {{ p.sexo.value }}</div>
+    <div><strong>Nacimiento:</strong> {{ p.fecha_nacimiento }}</div>
+    <div><strong>Dirección:</strong> {{ p.direccion }}</div>
+    <div><strong>Comuna:</strong> {{ p.comuna.nombre if p.comuna else '' }}</div>
+    <div><strong>Teléfono:</strong> {{ p.telefono or '-' }}</div>
+    <div><strong>Email:</strong> {{ p.email or '-' }}</div>
+    <div><strong>Previsión:</strong> {{ p.prevision_salud.value if p.prevision_salud else '-' }}</div>
+    <div><strong>Movilidad:</strong> {{ p.movilidad.value if p.movilidad else '-' }}</div>
+    <div><strong>Dependencia:</strong> {{ p.dependencia.value if p.dependencia else '-' }}</div>
+    <div><strong>Cuidador:</strong> {{ p.cuidador_principal or '-' }} ({{ p.cuidador_parentesco or 'N/A' }})</div>
+    <div><strong>Vive solo:</strong> {{ 'Sí' if p.vive_solo else 'No' }}</div>
+    <div><strong>Red de apoyo:</strong> {{ p.red_apoyo or '-' }}</div>
+    <div><strong>Puntaje vulnerabilidad:</strong> {{ p.puntaje_vulnerabilidad if p.puntaje_vulnerabilidad is not none else '-' }}</div>
+    <div><strong>Observaciones:</strong> {{ p.observaciones or '-' }}</div>
+    <div><strong>Enfermedades:</strong> {{ enfermedades|join(', ') if enfermedades else 'Ninguna registrada' }}</div>
+    <div><strong>Activo:</strong> {{ 'Sí' if p.activo else 'No' }}</div>
+  </div>
+
+  <div>
+    {% if p.imagen_path %}
+      <img class="border rounded" src="/static/pacientes/{{ p.imagen_path.split('/')[-1] }}" alt="Foto paciente">
+    {% else %}
+      <div class="border rounded p-4 text-gray-500">Sin imagen</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="mt-4">
+  <a href="/pacientes" class="px-4 py-2 border rounded">Volver</a>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<h1 class="text-xl font-bold mb-4">Pacientes</h1>
+
+<form class="mb-4 flex gap-2" method="get">
+  <input name="q" value="{{ request.query_params.get('q','') }}" placeholder="Buscar por nombre, apellido o RUT" class="border px-2 py-1 w-80">
+  <select name="activo" class="border px-2 py-1">
+    <option value="">Todos</option>
+    <option value="1" {% if request.query_params.get('activo')=='1' %}selected{% endif %}>Activos</option>
+    <option value="0" {% if request.query_params.get('activo')=='0' %}selected{% endif %}>Inactivos</option>
+  </select>
+  <button class="bg-blue-600 text-white px-3 py-1 rounded">Filtrar</button>
+  <a href="/pacientes/crear" class="ml-auto bg-green-600 text-white px-3 py-1 rounded">Nuevo Paciente</a>
+</form>
+
+<table class="w-full border">
+  <thead>
+    <tr class="bg-gray-100">
+      <th class="p-2 border">ID</th>
+      <th class="p-2 border">Nombre</th>
+      <th class="p-2 border">RUT</th>
+      <th class="p-2 border">Sexo</th>
+      <th class="p-2 border">Comuna</th>
+      <th class="p-2 border">Activo</th>
+      <th class="p-2 border">Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in pacientes %}
+    <tr>
+      <td class="p-2 border">{{ p.id }}</td>
+      <td class="p-2 border">{{ p.nombres }} {{ p.apellidos }}</td>
+      <td class="p-2 border">{{ p.rut }}</td>
+      <td class="p-2 border">{{ p.sexo.value }}</td>
+      <td class="p-2 border">{{ p.comuna.nombre if p.comuna else '' }}</td>
+      <td class="p-2 border">{{ 'Sí' if p.activo else 'No' }}</td>
+      <td class="p-2 border">
+        <a class="text-blue-600 underline" href="/pacientes/{{ p.id }}">Ver</a>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="p-3 text-center text-gray-500">Sin resultados</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
