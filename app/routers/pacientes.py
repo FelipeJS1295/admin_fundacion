@@ -1,22 +1,25 @@
-# routers/pacientes.py
+# app/routers/pacientes.py
 from fastapi import APIRouter, Request, Depends, Form, UploadFile, File, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import datetime
-import os, shutil
 from pathlib import Path
+import os, shutil
 
 from app.db import get_db
-from app.models.pacientes import Paciente, Enfermedad, PacienteEnfermedad, Comuna, SexoEnum, PrevisionEnum, MovilidadEnum, DependenciaEnum
+from app.models.pacientes import (
+    Paciente, Enfermedad, PacienteEnfermedad, Comuna,
+    SexoEnum, PrevisionEnum, MovilidadEnum, DependenciaEnum
+)
 
 router = APIRouter(prefix="/pacientes", tags=["Pacientes"])
-templates = Jinja2Templates(directory="templates")  # asegúrate de apuntar a tu carpeta templates
+templates = Jinja2Templates(directory="templates")
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+# Carpeta para imágenes dentro del proyecto
+BASE_DIR = Path(__file__).resolve().parents[2]  # /srv/www/admin_fundacion
 IMAGES_DIR = BASE_DIR / "static" / "pacientes"
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-os.makedirs(IMAGES_DIR, exist_ok=True)
 
 # --- util RUT ---
 def validar_rut_chileno(rut: str) -> bool:
@@ -27,17 +30,22 @@ def validar_rut_chileno(rut: str) -> bool:
     if not cuerpo.isdigit():
         return False
     factores = [2,3,4,5,6,7]
-    suma, f_i = 0, 0
+    suma, i = 0, 0
     for n in map(int, reversed(cuerpo)):
-        suma += n * factores[f_i]
-        f_i = (f_i + 1) % len(factores)
+        suma += n * factores[i]
+        i = (i + 1) % len(factores)
     resto = 11 - (suma % 11)
     dv_calc = "0" if resto == 11 else "K" if resto == 10 else str(resto)
     return dv_calc == dv
 
 # --- listado ---
 @router.get("/")
-def pacientes_index(request: Request, db: Session = Depends(get_db), q: str | None = None, activo: str | None = None):
+def pacientes_index(
+    request: Request,
+    db: Session = Depends(get_db),
+    q: str | None = None,
+    activo: str | None = None
+):
     query = db.query(Paciente).join(Comuna)
     if q:
         like = f"%{q}%"
@@ -46,27 +54,28 @@ def pacientes_index(request: Request, db: Session = Depends(get_db), q: str | No
             (Paciente.apellidos.ilike(like)) |
             (Paciente.rut.ilike(like))
         )
-    if activo in ("1","0"):
+    if activo in ("1", "0"):
         query = query.filter(Paciente.activo == (activo == "1"))
     pacientes = query.order_by(Paciente.creado_en.desc()).all()
     return templates.TemplateResponse("pacientes/index.html", {
         "request": request,
-        "pacientes": pacientes
+        "pacientes": pacientes,
+        "path": request.url.path
     })
 
 # --- formulario crear ---
 @router.get("/crear")
 def pacientes_crear(request: Request, db: Session = Depends(get_db)):
-    comunas = db.query(Comuna).order_by(Comuna.nombre).all()
+    # El template ya trae comunas fijas; mandamos solo opciones de combos
     enfermedades = db.query(Enfermedad).order_by(Enfermedad.nombre).all()
     return templates.TemplateResponse("pacientes/create.html", {
         "request": request,
-        "comunas": comunas,
-        "enfermedades": enfermedades,
+        "enfermedades": enfermedades,  # por si usas el select por IDs además de 'otras'
         "sexo_opts": [e.value for e in SexoEnum],
         "prevision_opts": [e.value for e in PrevisionEnum],
         "movilidad_opts": [e.value for e in MovilidadEnum],
         "dependencia_opts": [e.value for e in DependenciaEnum],
+        "path": request.url.path
     })
 
 # --- guardar ---
@@ -74,6 +83,7 @@ def pacientes_crear(request: Request, db: Session = Depends(get_db)):
 async def pacientes_store(
     request: Request,
     db: Session = Depends(get_db),
+
     # datos básicos
     nombres: str = Form(...),
     apellidos: str = Form(...),
@@ -81,7 +91,10 @@ async def pacientes_store(
     sexo: str = Form(...),
     fecha_nacimiento: str = Form(...),  # "YYYY-MM-DD"
     direccion: str = Form(...),
-    comuna_id: int = Form(...),
+
+    # Opción A: puede venir nombre de comuna o id
+    comuna_id: str = Form(...),
+
     telefono: str | None = Form(None),
     email: str | None = Form(None),
     prevision_salud: str | None = Form(None),
@@ -94,9 +107,11 @@ async def pacientes_store(
     puntaje_vulnerabilidad: int | None = Form(None),
     observaciones: str | None = Form(None),
     activo: str | None = Form("on"),
-    # enfermedades múltiples
+
+    # enfermedades (puede venir por IDs y/o por nombre)
     enfermedades_ids: list[int] = Form([]),
     enfermedades_otras: list[str] = Form([]),
+
     # imagen
     imagen: UploadFile | None = File(None),
 ):
@@ -104,6 +119,16 @@ async def pacientes_store(
     if not validar_rut_chileno(rut):
         raise HTTPException(400, detail="RUT inválido")
 
+    # convertir comuna (nombre -> id) si es necesario
+    try:
+        comuna_id_int = int(comuna_id)
+    except ValueError:
+        c = db.query(Comuna).filter(Comuna.nombre == comuna_id).first()
+        if not c:
+            raise HTTPException(400, detail="Comuna no válida")
+        comuna_id_int = c.id
+
+    # crear paciente
     p = Paciente(
         nombres=nombres.strip(),
         apellidos=apellidos.strip(),
@@ -111,7 +136,7 @@ async def pacientes_store(
         sexo=SexoEnum(sexo),
         fecha_nacimiento=datetime.strptime(fecha_nacimiento, "%Y-%m-%d").date(),
         direccion=direccion.strip(),
-        comuna_id=int(comuna_id),
+        comuna_id=comuna_id_int,
         telefono=telefono or None,
         email=email or None,
         prevision_salud=PrevisionEnum(prevision_salud) if prevision_salud else None,
@@ -127,12 +152,11 @@ async def pacientes_store(
     )
     db.add(p); db.flush()
 
-    # Enfermedades de catálogo
-    if enfermedades_ids:
-        for enf_id in enfermedades_ids:
-            db.add(PacienteEnfermedad(paciente_id=p.id, enfermedad_id=int(enf_id)))
+    # Enfermedades por ID
+    for enf_id in (enfermedades_ids or []):
+        db.add(PacienteEnfermedad(paciente_id=p.id, enfermedad_id=int(enf_id)))
 
-    # Otras enfermedades: crear si no existen (case-insensitive)
+    # Enfermedades por nombre (otras)
     for nombre in (enfermedades_otras or []):
         nombre = (nombre or "").strip()
         if not nombre:
@@ -167,9 +191,11 @@ def pacientes_show(paciente_id: int, request: Request, db: Session = Depends(get
     enf = []
     for r in rels:
         e = db.get(Enfermedad, r.enfermedad_id)
-        if e: enf.append(e.nombre)
+        if e:
+            enf.append(e.nombre)
     return templates.TemplateResponse("pacientes/show.html", {
         "request": request,
         "p": p,
-        "enfermedades": enf
+        "enfermedades": enf,
+        "path": request.url.path
     })
