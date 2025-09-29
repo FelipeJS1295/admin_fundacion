@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 import os, shutil
 
-from db import get_db  # tu SessionLocal()
+from app.db import get_db
 from app.models.pacientes import Paciente, Enfermedad, PacienteEnfermedad, Comuna, SexoEnum, PrevisionEnum, MovilidadEnum, DependenciaEnum
 
 router = APIRouter(prefix="/pacientes", tags=["Pacientes"])
