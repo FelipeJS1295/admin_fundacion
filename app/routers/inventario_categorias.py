@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select, func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from app.core.templates import templates
 from app.db import get_db
@@ -19,32 +19,36 @@ def _opts_padres(db: Session, excluir_id: int | None = None):
 
 @router.get("/inventario/categorias", response_class=HTMLResponse)
 def categorias_list(request: Request, q: str | None = None, db: Session = Depends(get_db)):
-    # subconsultas de conteos
+    # Alias para evitar conflictos al auto-referenciar la misma tabla
+    Cat = CategoriaInv
+    Child = aliased(CategoriaInv)
+
     sub_child = (
-        select(CategoriaInv.parent_id.label("parent_id"), func.count().label("hijos"))
-        .group_by(CategoriaInv.parent_id)
+        select(Child.parent_id.label("pid"), func.count().label("hijos"))
+        .group_by(Child.parent_id)
         .subquery()
     )
     sub_prod = (
-        select(Producto.categoria_id.label("categoria_id"), func.count().label("productos"))
+        select(Producto.categoria_id.label("cid"), func.count().label("productos"))
         .group_by(Producto.categoria_id)
         .subquery()
     )
 
     stmt = (
         select(
-            CategoriaInv,
-            func.coalesce(sub_child.c.hijos, 0),
-            func.coalesce(sub_prod.c.productos, 0),
+            Cat,
+            func.coalesce(sub_child.c.hijos, 0).label("hijos"),
+            func.coalesce(sub_prod.c.productos, 0).label("productos"),
         )
-        .outerjoin(sub_child, sub_child.c.parent_id == CategoriaInv.id)
-        .outerjoin(sub_prod, sub_prod.c.categoria_id == CategoriaInv.id)
-        .order_by(CategoriaInv.nombre)
+        .select_from(Cat)  # 👈 fija el FROM principal
+        .outerjoin(sub_child, sub_child.c.pid == Cat.id)
+        .outerjoin(sub_prod, sub_prod.c.cid == Cat.id)
+        .order_by(Cat.nombre)
     )
 
     if q:
         like = f"%{q}%"
-        stmt = stmt.where(CategoriaInv.nombre.like(like))  # MySQL es case-insensitive por collation
+        stmt = stmt.where(Cat.nombre.like(like))
 
     rows = db.execute(stmt).all()
     items = [{"cat": c, "hijos": h, "productos": p} for (c, h, p) in rows]
