@@ -19,39 +19,40 @@ def _opts_padres(db: Session, excluir_id: int | None = None):
 
 @router.get("/inventario/categorias", response_class=HTMLResponse)
 def categorias_list(request: Request, q: str | None = None, db: Session = Depends(get_db)):
-    # Alias para evitar conflictos al auto-referenciar la misma tabla
-    Cat = CategoriaInv
-    Child = aliased(CategoriaInv)
-
-    sub_child = (
-        select(Child.parent_id.label("pid"), func.count().label("hijos"))
-        .group_by(Child.parent_id)
-        .subquery()
-    )
-    sub_prod = (
-        select(Producto.categoria_id.label("cid"), func.count().label("productos"))
-        .group_by(Producto.categoria_id)
-        .subquery()
-    )
-
-    stmt = (
-        select(
-            Cat,
-            func.coalesce(sub_child.c.hijos, 0).label("hijos"),
-            func.coalesce(sub_prod.c.productos, 0).label("productos"),
-        )
-        .select_from(Cat)  # 👈 fija el FROM principal
-        .outerjoin(sub_child, sub_child.c.pid == Cat.id)
-        .outerjoin(sub_prod, sub_prod.c.cid == Cat.id)
-        .order_by(Cat.nombre)
-    )
-
+    # 1) Trae TODAS las categorías (aplica filtro si viene q)
+    base_stmt = select(CategoriaInv).order_by(CategoriaInv.nombre)
     if q:
         like = f"%{q}%"
-        stmt = stmt.where(Cat.nombre.like(like))
+        base_stmt = base_stmt.where(CategoriaInv.nombre.like(like))  # MySQL collation -> case-insensitive
+    cats = db.execute(base_stmt).scalars().all()
 
-    rows = db.execute(stmt).all()
-    items = [{"cat": c, "hijos": h, "productos": p} for (c, h, p) in rows]
+    if not cats:
+        return templates.TemplateResponse(
+            "inventario/categorias_list.html",
+            {"request": request, "items": [], "q": q or ""},
+        )
+
+    # 2) Conteos por separado (diccionarios pid->#hijos / cid->#productos)
+    child_counts = dict(
+        db.execute(
+            select(CategoriaInv.parent_id, func.count())
+            .where(CategoriaInv.parent_id.is_not(None))
+            .group_by(CategoriaInv.parent_id)
+        ).all()
+    )
+    prod_counts = dict(
+        db.execute(
+            select(Producto.categoria_id, func.count())
+            .where(Producto.categoria_id.is_not(None))
+            .group_by(Producto.categoria_id)
+        ).all()
+    )
+
+    # 3) Arma items para la vista
+    items = [
+        {"cat": c, "hijos": child_counts.get(c.id, 0), "productos": prod_counts.get(c.id, 0)}
+        for c in cats
+    ]
 
     return templates.TemplateResponse(
         "inventario/categorias_list.html",
