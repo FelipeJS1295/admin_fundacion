@@ -12,6 +12,7 @@ from app.routers.salidas import router as salidas_router
 from app.routers.categorias import router as categorias_router
 from app.routers.auth import router as auth_router, seed_admin_user
 from app.routers.usuarios import router as usuarios_router
+from app.routers.inventario_simple import router as inventario_simple_router
 
 
 app = FastAPI(title="Contabilidad Fundación")
@@ -54,3 +55,4 @@ app.include_router(entradas_router)
 app.include_router(salidas_router)
 app.include_router(categorias_router)
 app.include_router(usuarios_router)
+app.include_router(inventario_simple_router)

@@ -1,0 +1,41 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Inventario{% endblock %}
+{% block page_actions %}
+  <a href="/inventario/items/nuevo" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm">+ Nuevo ítem</a>
+{% endblock %}
+{% block content %}
+<form method="get" class="mb-4 flex gap-2">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar..." class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 w-64" />
+  <button class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-sm">Filtrar</button>
+</form>
+
+<div class="overflow-hidden rounded-xl border border-slate-800">
+  <table class="min-w-full text-sm">
+    <thead class="bg-slate-900/60 text-slate-300"><tr>
+      <th class="px-3 py-2 text-left">Nombre</th>
+      <th class="px-3 py-2 text-left">Categoría</th>
+      <th class="px-3 py-2 text-left">Unidad</th>
+      <th class="px-3 py-2 text-right">Stock inicial</th>
+      <th class="px-3 py-2"></th>
+    </tr></thead>
+    <tbody>
+      {% for it in rows %}
+      <tr class="border-t border-slate-800">
+        <td class="px-3 py-2">{{ it.nombre }}</td>
+        <td class="px-3 py-2">{{ it.categoria.nombre if it.categoria else '—' }}</td>
+        <td class="px-3 py-2">{{ it.unidad.nombre if it.unidad else '—' }}</td>
+        <td class="px-3 py-2 text-right">{{ '%.3f'|format(it.stock_inicial) }}</td>
+        <td class="px-3 py-2 text-right">
+          <a class="text-emerald-400 hover:underline" href="/inventario/items/{{ it.id }}/editar">Editar</a>
+          <form method="post" action="/inventario/items/{{ it.id }}/eliminar" class="inline" onsubmit="return confirm('¿Eliminar ítem?');">
+            <button class="ml-3 text-rose-400 hover:underline">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-3 py-6 text-center text-slate-400">Sin registros.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

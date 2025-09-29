@@ -40,20 +40,17 @@
 
     {# ---------- INVENTARIO ---------- #}
     {% set open_inv = path.startswith('/inventario') %}
-    <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if open_inv else '' }}>
+    <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if request.url.path.startswith('/inventario') else '' }}>
       <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/60 cursor-pointer select-none">
         <div class="flex items-center gap-2">
           <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7h18v2H3zm0 4h18v10H3zM7 3h10v2H7z"/></svg>
           <span class="font-medium">Inventario</span>
         </div>
-        <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5H7z"/></svg>
+        <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg>
       </summary>
       <div class="bg-slate-900/40 p-2">
-        <a href="/inventario"               class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path == '/inventario'                       else 'hover:bg-slate-800/60 text-slate-300' }}">Panel</a>
-        <a href="/inventario/productos"     class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/productos')     else 'hover:bg-slate-800/60 text-slate-300' }}">Productos</a>
-        <a href="/inventario/movimientos"   class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/movimientos')   else 'hover:bg-slate-800/60 text-slate-300' }}">Movimientos</a>
-        <a href="/inventario/bodegas"       class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/bodegas')       else 'hover:bg-slate-800/60 text-slate-300' }}">Bodegas</a>
-        <a href="/inventario/categorias"    class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/categorias')    else 'hover:bg-slate-800/60 text-slate-300' }}">Categorías</a>
+        <a href="/inventario/items" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if request.url.path.startswith('/inventario/items') else 'hover:bg-slate-800/60 text-slate-300' }}">Items</a>
+        <a href="/inventario/categorias" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if request.url.path.startswith('/inventario/categorias') else 'hover:bg-slate-800/60 text-slate-300' }}">Categorías</a>
       </div>
     </details>
 

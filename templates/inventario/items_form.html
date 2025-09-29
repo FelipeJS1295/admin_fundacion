@@ -1,0 +1,42 @@
+{% extends "layouts/base.html" %}
+{% set is_edit = item is not none %}
+{% block page_title %}{{ 'Editar ítem' if is_edit else 'Nuevo ítem' }}{% endblock %}
+{% block content %}
+<form method="post" action="{{ '/inventario/items/nuevo' if not is_edit else '/inventario/items/' ~ item.id ~ '/editar' }}" class="max-w-2xl space-y-4">
+  <div>
+    <label class="block text-sm mb-1">Nombre</label>
+    <input name="nombre" required value="{{ item.nombre if is_edit else '' }}" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm mb-1">Categoría</label>
+      <select name="categoria_id" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+        <option value="" disabled selected>Seleccione...</option>
+        {% for c in cats %}
+          <option value="{{ c.id }}" {% if is_edit and item.categoria_id==c.id %}selected{% endif %}>{{ c.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm mb-1">Unidad</label>
+      <select name="unidad_id" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+        <option value="" disabled selected>Seleccione...</option>
+        {% for u in unidades %}
+          <option value="{{ u.id }}" {% if is_edit and item.unidad_id==u.id %}selected{% endif %}>{{ u.codigo }} — {{ u.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="max-w-xs">
+    <label class="block text-sm mb-1">Stock inicial</label>
+    <input name="stock_inicial" value="{{ '%.3f'|format(item.stock_inicial) if is_edit else '0' }}" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+  </div>
+
+  <div class="pt-2">
+    <button class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white">Guardar</button>
+    <a href="/inventario/items" class="ml-2 px-4 py-2 rounded-lg border border-slate-700 hover:bg-slate-800">Cancelar</a>
+  </div>
+</form>
+{% endblock %}
