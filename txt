@@ -1,3 +1,5 @@
 partida: uvicorn app.main:app --reload
 
 actualizacion de gitvps: /usr/local/bin/update_admin_fundacion.sh --stash
+
+cd /srv/www/admin_fundacion

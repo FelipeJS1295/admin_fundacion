@@ -72,14 +72,15 @@ def categorias_new_form(request: Request, db: Session = Depends(get_db)):
 def categorias_create(
     request: Request,
     nombre: str = Form(...),
-    parent_id: int | None = Form(None),
+    parent_id: str | None = Form(None),   # << string
     activa: int = Form(1),
     db: Session = Depends(get_db),
 ):
-    c = CategoriaInv(nombre=nombre.strip(), parent_id=parent_id or None, activo=1 if activa else 0)
-    db.add(c)
-    db.commit()
+    parent = int(parent_id) if parent_id and parent_id.isdigit() else None
+    c = CategoriaInv(nombre=nombre.strip(), parent_id=parent, activo=1 if activa else 0)
+    db.add(c); db.commit()
     return RedirectResponse(url="/inventario/categorias?ok=1", status_code=303)
+
 
 
 @router.get("/inventario/categorias/{cat_id}/editar", response_class=HTMLResponse)
@@ -98,20 +99,16 @@ def categorias_edit_form(cat_id: int, request: Request, db: Session = Depends(ge
 def categorias_update(
     cat_id: int,
     nombre: str = Form(...),
-    parent_id: int | None = Form(None),
+    parent_id: str | None = Form(None),   # << string
     activa: int = Form(1),
     db: Session = Depends(get_db),
 ):
     c = db.get(CategoriaInv, cat_id)
-    if not c:
-        raise HTTPException(404)
-    # evitar que sea padre de sí misma
-    if parent_id and parent_id == c.id:
+    if not c: raise HTTPException(404)
+    parent = int(parent_id) if parent_id and parent_id.isdigit() else None
+    if parent and parent == c.id:
         return RedirectResponse(url="/inventario/categorias?error=Padre%20inv%C3%A1lido", status_code=303)
-
-    c.nombre = nombre.strip()
-    c.parent_id = parent_id or None
-    c.activo = 1 if activa else 0
+    c.nombre = nombre.strip(); c.parent_id = parent; c.activo = 1 if activa else 0
     db.commit()
     return RedirectResponse(url="/inventario/categorias?ok=1", status_code=303)
 
