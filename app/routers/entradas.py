@@ -3,7 +3,7 @@ from fastapi import APIRouter, Request, Depends, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 from app.db import get_db
 from app.models import Transaccion, Categoria
@@ -29,28 +29,59 @@ def listar_entradas(
     q: str | None = Query(None),
     limit: int = Query(200, ge=1, le=1000),
 ):
-    query = db.query(Transaccion).filter(Transaccion.tipo == "entrada")
+    # ---- 1) Junta todos los filtros en una lista ----
+    filtros = [Transaccion.tipo == "entrada"]
     if desde:
-        query = query.filter(Transaccion.fecha >= desde)
+        filtros.append(Transaccion.fecha >= desde)
     if hasta:
-        query = query.filter(Transaccion.fecha <= hasta)
+        filtros.append(Transaccion.fecha <= hasta)
     if categoria_id:
-        query = query.filter(Transaccion.categoria_id == categoria_id)
+        filtros.append(Transaccion.categoria_id == categoria_id)
     if metodo_pago:
-        query = query.filter(Transaccion.metodo_pago == metodo_pago)
+        filtros.append(Transaccion.metodo_pago == metodo_pago)
     if q:
-        query = query.filter(Transaccion.descripcion.like(f"%{q}%"))
+        like = f"%{q}%"
+        filtros.append(
+            or_(
+                Transaccion.descripcion.like(like),
+                Transaccion.concepto.like(like),
+                Transaccion.numero_documento.like(like),
+            )
+        )
 
-    entradas = query.order_by(Transaccion.fecha.desc(), Transaccion.id.desc()).limit(limit).all()
+    # ---- 2) Base query reutilizable ----
+    base_q = db.query(Transaccion).filter(*filtros)
+
+    # ---- 3) Total filtrado (sin ORDER/LIMIT) ----
+    total = (
+        base_q.with_entities(func.coalesce(func.sum(Transaccion.monto), 0))
+        .scalar()
+        or 0
+    )
+
+    # ---- 4) Lista paginada/limitada con los mismos filtros ----
+    entradas = (
+        base_q.order_by(Transaccion.fecha.desc(), Transaccion.id.desc())
+        .limit(limit)
+        .all()
+    )
+
     cats = categorias_entrada(db)
 
-    return templates.TemplateResponse("entradas/list.html", {
-        "request": request,
-        "entradas": entradas,
-        "categorias": cats,
-        "filtros": {"desde": desde, "hasta": hasta, "categoria_id": categoria_id,
-                    "metodo_pago": metodo_pago, "q": q, "limit": limit}
-    })
+    return templates.TemplateResponse(
+        "entradas/list.html",
+        {
+            "request": request,
+            "entradas": entradas,
+            "categorias": cats,
+            "total": total,  # 👈 pasamos el total al template
+            "filtros": {
+                "desde": desde, "hasta": hasta,
+                "categoria_id": categoria_id, "metodo_pago": metodo_pago,
+                "q": q, "limit": limit
+            },
+        },
+    )
 
 # CREAR
 @router.get("/entradas/nueva", response_class=HTMLResponse)
