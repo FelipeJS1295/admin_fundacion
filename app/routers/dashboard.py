@@ -1,5 +1,5 @@
 # routers/dashboard.py
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, Request, Depends, Query
 from fastapi.responses import HTMLResponse
@@ -18,14 +18,17 @@ def _parse_date(s: Optional[str]) -> Optional[date]:
     except Exception:
         return None
 
-def _month_limits_today() -> tuple[date, date]:
-    hoy = date.today()
-    inicio = hoy.replace(day=1)
-    if hoy.month == 12:
-        fin = date(hoy.year + 1, 1, 1)
+def _month_limits_for(dt: date) -> tuple[date, date]:
+    """(inicio_mes, inicio_mes_siguiente)"""
+    ini = dt.replace(day=1)
+    if dt.month == 12:
+        fin = date(dt.year + 1, 1, 1)
     else:
-        fin = date(hoy.year, hoy.month + 1, 1)
-    return inicio, fin
+        fin = date(dt.year, dt.month + 1, 1)
+    return ini, fin
+
+def _month_limits_today() -> tuple[date, date]:
+    return _month_limits_for(date.today())
 
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard_view(
@@ -36,19 +39,46 @@ def dashboard_view(
     categoria_id: Optional[str] = Query(None),
     metodo_pago: Optional[str] = Query(None),
 ):
-    # Rango por defecto = mes actual
+    # 1) Rango por defecto = mes actual
     d_default_start, d_default_end = _month_limits_today()
+
     d1 = _parse_date(desde) or d_default_start
     d2 = _parse_date(hasta)  or d_default_end
 
-    # Filtros comunes
-    filtros = [Transaccion.fecha >= d1, Transaccion.fecha < d2]
+    # "Hasta" incluyente -> usamos < (d2 + 1 día) internamente
+    d2_excl = d2 + timedelta(days=1)
+
+    user_set_range = (desde is not None) or (hasta is not None)
+
+    # 2) Filtros comunes
+    filtros = [Transaccion.fecha >= d1, Transaccion.fecha < d2_excl]
     if categoria_id and categoria_id.isdigit():
         filtros.append(Transaccion.categoria_id == int(categoria_id))
     if metodo_pago:
         filtros.append(Transaccion.metodo_pago == metodo_pago)
 
-    # KPIs
+    # 3) Si el usuario no eligió fechas y no hay datos en el mes actual,
+    #    ajustamos el rango al último mes con movimientos (o a últimos 30 días como fallback).
+    has_data = db.query(func.count(Transaccion.id)).filter(*filtros).scalar() or 0
+    if not user_set_range and has_data == 0:
+        # último día con movimientos
+        last_date: Optional[date] = db.query(func.max(Transaccion.fecha)).scalar()
+        if last_date:
+            d1, d2 = _month_limits_for(last_date)
+            d2_excl = d2  # ya es inicio del siguiente mes
+        else:
+            # fallback: últimos 30 días
+            d2 = date.today()
+            d1 = d2 - timedelta(days=30)
+            d2_excl = d2 + timedelta(days=1)
+        # recomponer filtros con el nuevo rango
+        filtros = [Transaccion.fecha >= d1, Transaccion.fecha < d2_excl]
+        if categoria_id and categoria_id.isdigit():
+            filtros.append(Transaccion.categoria_id == int(categoria_id))
+        if metodo_pago:
+            filtros.append(Transaccion.metodo_pago == metodo_pago)
+
+    # 4) KPIs
     total_entradas = (db.query(func.coalesce(func.sum(Transaccion.monto), 0))
                         .filter(*filtros, Transaccion.tipo == "entrada")
                         .scalar() or 0)
@@ -57,8 +87,7 @@ def dashboard_view(
                         .scalar() or 0)
     neto = total_entradas - total_salidas
 
-    # Serie diaria: entradas vs salidas por día
-    # group by fecha dentro del rango
+    # 5) Serie diaria: entradas vs salidas por día
     entradas_case = case((Transaccion.tipo == "entrada", Transaccion.monto), else_=0)
     salidas_case  = case((Transaccion.tipo == "salida",  Transaccion.monto), else_=0)
 
@@ -78,7 +107,7 @@ def dashboard_view(
         for r in serie_rows
     ]
 
-    # Top categorías (entradas)
+    # 6) Top categorías (entradas y salidas)
     cat_ent_rows = (
         db.query(Categoria.nombre, func.coalesce(func.sum(Transaccion.monto), 0))
         .join(Categoria, Categoria.id == Transaccion.categoria_id, isouter=True)
@@ -90,7 +119,6 @@ def dashboard_view(
     )
     cat_entradas = [{"categoria": (n or "Sin categoría"), "total": float(t)} for n, t in cat_ent_rows]
 
-    # Top categorías (salidas)
     cat_sal_rows = (
         db.query(Categoria.nombre, func.coalesce(func.sum(Transaccion.monto), 0))
         .join(Categoria, Categoria.id == Transaccion.categoria_id, isouter=True)
@@ -102,7 +130,7 @@ def dashboard_view(
     )
     cat_salidas = [{"categoria": (n or "Sin categoría"), "total": float(t)} for n, t in cat_sal_rows]
 
-    # Métodos de pago (pie) — entradas
+    # 7) Métodos de pago (entradas/salidas)
     met_ent_rows = (
         db.query(Transaccion.metodo_pago, func.coalesce(func.sum(Transaccion.monto), 0))
         .filter(*filtros, Transaccion.tipo == "entrada")
@@ -112,7 +140,6 @@ def dashboard_view(
     )
     met_entradas = [{"metodo": (m or "otros"), "total": float(t)} for m, t in met_ent_rows]
 
-    # Métodos de pago (pie) — salidas
     met_sal_rows = (
         db.query(Transaccion.metodo_pago, func.coalesce(func.sum(Transaccion.monto), 0))
         .filter(*filtros, Transaccion.tipo == "salida")
@@ -122,27 +149,26 @@ def dashboard_view(
     )
     met_salidas = [{"metodo": (m or "otros"), "total": float(t)} for m, t in met_sal_rows]
 
-    # Últimos movimientos (para tabla compacta)
-    ultimos = (db.query(Transaccion)
-                 .filter(*filtros)
-                 .order_by(Transaccion.fecha.desc(), Transaccion.id.desc())
-                 .limit(10).all())
+    # 8) Últimos movimientos
+    ultimos = (
+        db.query(Transaccion)
+          .filter(*filtros)
+          .order_by(Transaccion.fecha.desc(), Transaccion.id.desc())
+          .limit(10).all()
+    )
 
-    # Para selects
+    # 9) Selects
     categorias = db.query(Categoria).order_by(Categoria.nombre).all()
 
+    # 10) Devolvemos el rango que realmente se usó (para que el form lo muestre)
     return templates.TemplateResponse("dashboard/index.html", {
         "request": request,
         "desde": d1.isoformat(),
-        "hasta": d2.isoformat(),
+        "hasta": (d2_excl - timedelta(days=1)).isoformat(),  # mostramos el "hasta" incluyente
         "categoria_id": int(categoria_id) if (categoria_id and categoria_id.isdigit()) else "",
         "metodo_pago": metodo_pago or "",
 
-        "kpi": {
-            "entradas": float(total_entradas),
-            "salidas": float(total_salidas),
-            "neto": float(neto),
-        },
+        "kpi": {"entradas": float(total_entradas), "salidas": float(total_salidas), "neto": float(neto)},
         "serie": serie,
         "cat_entradas": cat_entradas,
         "cat_salidas": cat_salidas,
