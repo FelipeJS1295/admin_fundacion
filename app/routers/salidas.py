@@ -50,15 +50,16 @@ def eliminar_archivo(path_url: str):
 def listar_salidas(
     request: Request,
     db: Session = Depends(get_db),
-    # 👇 recibir como string para tolerar "" y convertir nosotros
     desde: str | None = Query(None),
     hasta: str | None = Query(None),
     categoria_id: str | None = Query(None),
     metodo_pago: str | None = Query(None),
     q: str | None = Query(None),
+    sort: str | None = Query("fecha"),     # 👈 nuevo
+    dir: str | None = Query("desc"),       # 👈 nuevo
     limit: int = Query(200, ge=1, le=1000),
 ):
-    # Parseos seguros
+    # Parseos
     def _parse_date(s: str | None):
         if not s: return None
         try:
@@ -73,7 +74,6 @@ def listar_salidas(
     d2 = _parse_date(hasta)
     cat_id = _parse_int(categoria_id)
 
-    # Filtros comunes
     filtros = [Transaccion.tipo == "salida"]
     if d1: filtros.append(Transaccion.fecha >= d1)
     if d2: filtros.append(Transaccion.fecha <= d2)
@@ -81,24 +81,37 @@ def listar_salidas(
     if metodo_pago: filtros.append(Transaccion.metodo_pago == metodo_pago)
     if q:
         like = f"%{q}%"
-        filtros.append(
-            or_(
-                Transaccion.concepto.like(like),
-                Transaccion.descripcion.like(like),
-                Transaccion.numero_documento.like(like),
-            )
-        )
+        filtros.append(or_(
+            Transaccion.concepto.like(like),
+            Transaccion.descripcion.like(like),
+            Transaccion.numero_documento.like(like),
+        ))
 
-    base_q = db.query(Transaccion).filter(*filtros)
+    base_q = (db.query(Transaccion)
+                .outerjoin(Categoria, Transaccion.categoria_id == Categoria.id)
+                .filter(*filtros))
 
-    # Total filtrado (sin limit/orden)
     total = base_q.with_entities(func.coalesce(func.sum(Transaccion.monto), 0)).scalar() or 0
 
-    # Lista limitada
-    salidas = (
-        base_q.order_by(Transaccion.fecha.desc(), Transaccion.id.desc())
-              .limit(limit).all()
-    )
+    # columnas permitidas para orden
+    order_map = {
+        "fecha": Transaccion.fecha,
+        "concepto": Transaccion.concepto,
+        "monto": Transaccion.monto,
+        "metodo": Transaccion.metodo_pago,
+        "categoria": Categoria.nombre,
+        "numero": Transaccion.numero_documento,
+        "descripcion": Transaccion.descripcion,
+        "id": Transaccion.id,
+    }
+    sort = (sort or "fecha").lower()
+    dir = (dir or "desc").lower()
+    col = order_map.get(sort, Transaccion.fecha)
+    ordering = col.desc() if dir == "desc" else col.asc()
+
+    salidas = (base_q
+               .order_by(ordering, Transaccion.id.desc())   # desempate por id
+               .limit(limit).all())
 
     cats = categorias_salida(db)
 
@@ -113,7 +126,9 @@ def listar_salidas(
             "categoria_id": cat_id,
             "metodo_pago": metodo_pago or "",
             "q": q or "",
-            "limit": limit
+            "limit": limit,
+            "sort": sort,
+            "dir": dir,
         }
     })
 
