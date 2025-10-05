@@ -46,41 +46,58 @@
 <div class="mb-4 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
   <span class="text-sm text-slate-300">Total (aplicando filtros)</span>
   <span class="text-2xl font-bold text-emerald-400">
-    ${{ '%.0f'|format(total) }}
+    {{ total|clp }}
   </span>
 </div>
+
+{% macro sort_link(col_key, label) -%}
+  {# determina la próxima dirección #}
+  {% set is_current = (filtros.sort == col_key) %}
+  {% set next_dir = 'asc' if (not is_current or filtros.dir == 'desc') else 'desc' %}
+  <a
+    href="/entradas?desde={{ filtros.desde }}&hasta={{ filtros.hasta }}&categoria_id={{ filtros.categoria_id or '' }}&metodo_pago={{ filtros.metodo_pago }}&q={{ filtros.q }}&limit={{ filtros.limit }}&sort={{ col_key }}&dir={{ next_dir }}"
+    class="inline-flex items-center gap-1 hover:text-white"
+  >
+    <span>{{ label }}</span>
+    {% if is_current %}
+      <span class="text-xs opacity-70">{{ '▲' if filtros.dir == 'asc' else '▼' }}</span>
+    {% else %}
+      <span class="text-xs opacity-40">⇅</span>
+    {% endif %}
+  </a>
+{%- endmacro %}
 
 <div class="overflow-x-auto rounded-2xl border border-slate-800">
   <table class="min-w-full text-sm">
     <thead class="bg-slate-900 text-slate-300">
-    <tr>
-        <th class="px-3 py-2 text-left">Fecha</th>
-        <th class="px-3 py-2 text-left">Monto</th>
-        <th class="px-3 py-2 text-left">Método</th>
-        <th class="px-3 py-2 text-left">Categoría</th>
-        <th class="px-3 py-2 text-left">Descripción</th>
+      <tr>
+        <th class="px-3 py-2 text-left">{{ sort_link('fecha','Fecha') }}</th>
+        <th class="px-3 py-2 text-left">{{ sort_link('monto','Monto') }}</th>
+        <th class="px-3 py-2 text-left">{{ sort_link('metodo','Método') }}</th>
+        <th class="px-3 py-2 text-left">{{ sort_link('categoria','Categoría') }}</th>
+        <th class="px-3 py-2 text-left">{{ sort_link('descripcion','Descripción') }}</th>
         <th class="px-3 py-2 text-left">Acciones</th>
-    </tr>
+      </tr>
     </thead>
     <tbody>
-    {% for t in entradas %}
-    <tr class="border-t border-slate-800">
-        <td class="px-3 py-2">{{ t.fecha }}</td>
-        <td class="px-3 py-2 font-semibold">${{ '%.0f'|format(t.monto) }}</td>
+      {% for t in entradas %}
+      <tr class="border-t border-slate-800">
+        <td class="px-3 py-2">{{ t.fecha|fecha_cl }}</td>
+        <td class="px-3 py-2 font-semibold">{{ t.monto|clp }}</td>
         <td class="px-3 py-2">{{ t.metodo_pago }}</td>
         <td class="px-3 py-2">{{ t.categoria.nombre if t.categoria else '-' }}</td>
         <td class="px-3 py-2">{{ t.descripcion or '' }}</td>
         <td class="px-3 py-2 space-x-2">
-        <a class="underline" href="/entradas/{{ t.id }}">Ver</a>
-        <a class="underline" href="/entradas/{{ t.id }}/editar">Editar</a>
-        <form method="post" action="/entradas/{{ t.id }}/eliminar" class="inline" onsubmit="return confirm('¿Eliminar entrada?');">
+          <a class="underline" href="/entradas/{{ t.id }}">Ver</a>
+          <a class="underline" href="/entradas/{{ t.id }}/editar">Editar</a>
+          <form method="post" action="/entradas/{{ t.id }}/eliminar" class="inline" onsubmit="return confirm('¿Eliminar entrada?');">
             <button class="underline text-rose-300">Eliminar</button>
-        </form>
+          </form>
         </td>
-    </tr>
-    {% else %}
-    <tr><td class="px-3 py-4 text-slate-400" colspan="6">No hay entradas.</td></tr>
-    {% endfor %}
+      </tr>
+      {% else %}
+      <tr><td class="px-3 py-4 text-slate-400" colspan="6">No hay entradas.</td></tr>
+      {% endfor %}
     </tbody>
   </table>
 </div>

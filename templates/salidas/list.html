@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 {% block content %}
-<h2 class="text-xl font-semibold mb-4">Entradas</h2>
+<h2 class="text-xl font-semibold mb-4">Salidas</h2>
 
 <form method="get" class="grid gap-3 md:grid-cols-6 mb-4">
   <div>
@@ -33,71 +33,60 @@
   </div>
   <div class="md:col-span-2">
     <label class="block text-sm text-slate-300 mb-1">Buscar</label>
-    <input type="text" name="q" value="{{ filtros.q or '' }}" placeholder="Descripción..."
+    <input type="text" name="q" value="{{ filtros.q or '' }}" placeholder="Concepto, descripción o N° doc..."
            class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
   </div>
   <div class="md:col-span-6 flex gap-2">
     <button class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Filtrar</button>
-    <a href="/entradas" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Limpiar</a>
-    <a href="/entradas/nueva" class="ml-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white">Nueva entrada</a>
+    <a href="/salidas" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Limpiar</a>
+    <a href="/salidas/nueva" class="ml-auto px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white">Nueva salida</a>
   </div>
 </form>
 
 <div class="mb-4 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
   <span class="text-sm text-slate-300">Total (aplicando filtros)</span>
-  <span class="text-2xl font-bold text-emerald-400">
-    {{ total|clp }}
+  <span class="text-2xl font-bold text-rose-400">
+    ${{ '%.0f'|format(total) }}
   </span>
 </div>
-
-{% macro sort_link(col_key, label) -%}
-  {# determina la próxima dirección #}
-  {% set is_current = (filtros.sort == col_key) %}
-  {% set next_dir = 'asc' if (not is_current or filtros.dir == 'desc') else 'desc' %}
-  <a
-    href="/entradas?desde={{ filtros.desde }}&hasta={{ filtros.hasta }}&categoria_id={{ filtros.categoria_id or '' }}&metodo_pago={{ filtros.metodo_pago }}&q={{ filtros.q }}&limit={{ filtros.limit }}&sort={{ col_key }}&dir={{ next_dir }}"
-    class="inline-flex items-center gap-1 hover:text-white"
-  >
-    <span>{{ label }}</span>
-    {% if is_current %}
-      <span class="text-xs opacity-70">{{ '▲' if filtros.dir == 'asc' else '▼' }}</span>
-    {% else %}
-      <span class="text-xs opacity-40">⇅</span>
-    {% endif %}
-  </a>
-{%- endmacro %}
 
 <div class="overflow-x-auto rounded-2xl border border-slate-800">
   <table class="min-w-full text-sm">
     <thead class="bg-slate-900 text-slate-300">
-      <tr>
-        <th class="px-3 py-2 text-left">{{ sort_link('fecha','Fecha') }}</th>
-        <th class="px-3 py-2 text-left">{{ sort_link('monto','Monto') }}</th>
-        <th class="px-3 py-2 text-left">{{ sort_link('metodo','Método') }}</th>
-        <th class="px-3 py-2 text-left">{{ sort_link('categoria','Categoría') }}</th>
-        <th class="px-3 py-2 text-left">{{ sort_link('descripcion','Descripción') }}</th>
+    <tr>
+        <th class="px-3 py-2 text-left">Fecha</th>
+        <th class="px-3 py-2 text-left">Concepto</th>
+        <th class="px-3 py-2 text-left">Monto</th>
+        <th class="px-3 py-2 text-left">Método</th>
+        <th class="px-3 py-2 text-left">Categoría</th>
+        <th class="px-3 py-2 text-left">N° Doc</th>
+        <th class="px-3 py-2 text-left">Comprobante</th>
         <th class="px-3 py-2 text-left">Acciones</th>
-      </tr>
+    </tr>
     </thead>
     <tbody>
-      {% for t in entradas %}
-      <tr class="border-t border-slate-800">
-        <td class="px-3 py-2">{{ t.fecha|fecha_cl }}</td>
-        <td class="px-3 py-2 font-semibold">{{ t.monto|clp }}</td>
+    {% for t in salidas %}
+    <tr class="border-t border-slate-800">
+        <td class="px-3 py-2">{{ t.fecha }}</td>
+        <td class="px-3 py-2">{{ t.concepto or '-' }}</td>
+        <td class="px-3 py-2 font-semibold">${{ '%.0f'|format(t.monto) }}</td>
         <td class="px-3 py-2">{{ t.metodo_pago }}</td>
         <td class="px-3 py-2">{{ t.categoria.nombre if t.categoria else '-' }}</td>
-        <td class="px-3 py-2">{{ t.descripcion or '' }}</td>
-        <td class="px-3 py-2 space-x-2">
-          <a class="underline" href="/entradas/{{ t.id }}">Ver</a>
-          <a class="underline" href="/entradas/{{ t.id }}/editar">Editar</a>
-          <form method="post" action="/entradas/{{ t.id }}/eliminar" class="inline" onsubmit="return confirm('¿Eliminar entrada?');">
-            <button class="underline text-rose-300">Eliminar</button>
-          </form>
+        <td class="px-3 py-2">{{ t.numero_documento or '-' }}</td>
+        <td class="px-3 py-2">
+        {% if t.documento_path %}<a class="underline" target="_blank" href="{{ t.documento_path }}">Ver</a>{% else %}-{% endif %}
         </td>
-      </tr>
-      {% else %}
-      <tr><td class="px-3 py-4 text-slate-400" colspan="6">No hay entradas.</td></tr>
-      {% endfor %}
+        <td class="px-3 py-2 space-x-2">
+        <a class="underline" href="/salidas/{{ t.id }}">Ver</a>
+        <a class="underline" href="/salidas/{{ t.id }}/editar">Editar</a>
+        <form method="post" action="/salidas/{{ t.id }}/eliminar" class="inline" onsubmit="return confirm('¿Eliminar salida?');">
+            <button class="underline text-rose-300">Eliminar</button>
+        </form>
+        </td>
+    </tr>
+    {% else %}
+    <tr><td class="px-3 py-4 text-slate-400" colspan="8">No hay salidas.</td></tr>
+    {% endfor %}
     </tbody>
   </table>
 </div>
