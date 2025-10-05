@@ -22,66 +22,65 @@ def categorias_entrada(db: Session):
 def listar_entradas(
     request: Request,
     db: Session = Depends(get_db),
-    desde: date | None = Query(None),
-    hasta: date | None = Query(None),
-    categoria_id: int | None = Query(None),
+    desde: str | None = Query(None),
+    hasta: str | None = Query(None),
+    categoria_id: str | None = Query(None),   # 👈 string
     metodo_pago: str | None = Query(None),
     q: str | None = Query(None),
     limit: int = Query(200, ge=1, le=1000),
 ):
-    # ---- 1) Junta todos los filtros en una lista ----
+    # parseos seguros
+    def _parse_date(s: str | None):
+        if not s: return None
+        try:
+            return datetime.fromisoformat(s).date()
+        except Exception:
+            return None
+
+    def _parse_int(s: str | None):
+        return int(s) if s and s.isdigit() else None
+
+    d1 = _parse_date(desde)
+    d2 = _parse_date(hasta)
+    cat_id = _parse_int(categoria_id)
+
+    # filtros comunes
     filtros = [Transaccion.tipo == "entrada"]
-    if desde:
-        filtros.append(Transaccion.fecha >= desde)
-    if hasta:
-        filtros.append(Transaccion.fecha <= hasta)
-    if categoria_id:
-        filtros.append(Transaccion.categoria_id == categoria_id)
-    if metodo_pago:
-        filtros.append(Transaccion.metodo_pago == metodo_pago)
+    if d1: filtros.append(Transaccion.fecha >= d1)
+    if d2: filtros.append(Transaccion.fecha <= d2)
+    if cat_id: filtros.append(Transaccion.categoria_id == cat_id)
+    if metodo_pago: filtros.append(Transaccion.metodo_pago == metodo_pago)
     if q:
         like = f"%{q}%"
-        filtros.append(
-            or_(
-                Transaccion.descripcion.like(like),
-                Transaccion.concepto.like(like),
-                Transaccion.numero_documento.like(like),
-            )
-        )
+        filtros.append(or_(
+            Transaccion.descripcion.like(like),
+            Transaccion.concepto.like(like),
+            Transaccion.numero_documento.like(like),
+        ))
 
-    # ---- 2) Base query reutilizable ----
     base_q = db.query(Transaccion).filter(*filtros)
 
-    # ---- 3) Total filtrado (sin ORDER/LIMIT) ----
-    total = (
-        base_q.with_entities(func.coalesce(func.sum(Transaccion.monto), 0))
-        .scalar()
-        or 0
-    )
-
-    # ---- 4) Lista paginada/limitada con los mismos filtros ----
-    entradas = (
-        base_q.order_by(Transaccion.fecha.desc(), Transaccion.id.desc())
-        .limit(limit)
-        .all()
-    )
+    total = base_q.with_entities(func.coalesce(func.sum(Transaccion.monto), 0)).scalar() or 0
+    entradas = (base_q
+                .order_by(Transaccion.fecha.desc(), Transaccion.id.desc())
+                .limit(limit).all())
 
     cats = categorias_entrada(db)
 
-    return templates.TemplateResponse(
-        "entradas/list.html",
-        {
-            "request": request,
-            "entradas": entradas,
-            "categorias": cats,
-            "total": total,  # 👈 pasamos el total al template
-            "filtros": {
-                "desde": desde, "hasta": hasta,
-                "categoria_id": categoria_id, "metodo_pago": metodo_pago,
-                "q": q, "limit": limit
-            },
-        },
-    )
+    return templates.TemplateResponse("entradas/list.html", {
+        "request": request,
+        "entradas": entradas,
+        "categorias": cats,
+        "total": total,
+        "filtros": {
+            "desde": d1.isoformat() if d1 else "",
+            "hasta": d2.isoformat() if d2 else "",
+            "categoria_id": cat_id,                 # 👈 devolvemos int ya parseado
+            "metodo_pago": metodo_pago or "",
+            "q": q or "",
+            "limit": limit
+        }
+    })
 
 # CREAR
 @router.get("/entradas/nueva", response_class=HTMLResponse)
