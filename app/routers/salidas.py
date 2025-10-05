@@ -6,7 +6,7 @@ from fastapi import APIRouter, Request, Depends, Form, UploadFile, File, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 from app.db import get_db
 from app.models import Transaccion, Categoria
@@ -50,38 +50,71 @@ def eliminar_archivo(path_url: str):
 def listar_salidas(
     request: Request,
     db: Session = Depends(get_db),
-    desde: date | None = Query(None),
-    hasta: date | None = Query(None),
-    categoria_id: int | None = Query(None),
+    # 👇 recibir como string para tolerar "" y convertir nosotros
+    desde: str | None = Query(None),
+    hasta: str | None = Query(None),
+    categoria_id: str | None = Query(None),
     metodo_pago: str | None = Query(None),
     q: str | None = Query(None),
     limit: int = Query(200, ge=1, le=1000),
 ):
-    query = db.query(Transaccion).filter(Transaccion.tipo == "salida")
-    if desde:
-        query = query.filter(Transaccion.fecha >= desde)
-    if hasta:
-        query = query.filter(Transaccion.fecha <= hasta)
-    if categoria_id:
-        query = query.filter(Transaccion.categoria_id == categoria_id)
-    if metodo_pago:
-        query = query.filter(Transaccion.metodo_pago == metodo_pago)
+    # Parseos seguros
+    def _parse_date(s: str | None):
+        if not s: return None
+        try:
+            return datetime.fromisoformat(s).date()
+        except Exception:
+            return None
+
+    def _parse_int(s: str | None):
+        return int(s) if s and s.isdigit() else None
+
+    d1 = _parse_date(desde)
+    d2 = _parse_date(hasta)
+    cat_id = _parse_int(categoria_id)
+
+    # Filtros comunes
+    filtros = [Transaccion.tipo == "salida"]
+    if d1: filtros.append(Transaccion.fecha >= d1)
+    if d2: filtros.append(Transaccion.fecha <= d2)
+    if cat_id: filtros.append(Transaccion.categoria_id == cat_id)
+    if metodo_pago: filtros.append(Transaccion.metodo_pago == metodo_pago)
     if q:
         like = f"%{q}%"
-        query = query.filter(
-            (Transaccion.concepto.like(like)) |
-            (Transaccion.descripcion.like(like)) |
-            (Transaccion.numero_documento.like(like))
+        filtros.append(
+            or_(
+                Transaccion.concepto.like(like),
+                Transaccion.descripcion.like(like),
+                Transaccion.numero_documento.like(like),
+            )
         )
-    salidas = query.order_by(Transaccion.fecha.desc(), Transaccion.id.desc()).limit(limit).all()
+
+    base_q = db.query(Transaccion).filter(*filtros)
+
+    # Total filtrado (sin limit/orden)
+    total = base_q.with_entities(func.coalesce(func.sum(Transaccion.monto), 0)).scalar() or 0
+
+    # Lista limitada
+    salidas = (
+        base_q.order_by(Transaccion.fecha.desc(), Transaccion.id.desc())
+              .limit(limit).all()
+    )
+
     cats = categorias_salida(db)
 
     return templates.TemplateResponse("salidas/list.html", {
         "request": request,
         "salidas": salidas,
         "categorias": cats,
-        "filtros": {"desde": desde, "hasta": hasta, "categoria_id": categoria_id,
-                    "metodo_pago": metodo_pago, "q": q, "limit": limit}
+        "total": total,
+        "filtros": {
+            "desde": d1.isoformat() if d1 else "",
+            "hasta": d2.isoformat() if d2 else "",
+            "categoria_id": cat_id,
+            "metodo_pago": metodo_pago or "",
+            "q": q or "",
+            "limit": limit
+        }
     })
 
 # CREAR
@@ -99,7 +132,7 @@ def crear_salida(
     request: Request,
     fecha: str = Form(...),
     monto: float = Form(...),
-    categoria_id: int | None = Form(None),
+    categoria_id: str | None = Form(None),   # 👈 string
     metodo_pago: str = Form("efectivo"),
     concepto: str = Form(""),
     numero_documento: str = Form(""),
@@ -114,15 +147,16 @@ def crear_salida(
     if monto <= 0:
         return RedirectResponse(url="/salidas/nueva?error=Monto%20inv%C3%A1lido", status_code=303)
 
+    cat_id = int(categoria_id) if categoria_id and categoria_id.isdigit() else None
+    cat = db.get(Categoria, cat_id) if cat_id else None
+
     doc_path = guardar_archivo(documento)
-    cat = db.get(Categoria, categoria_id) if categoria_id else None
     tx = Transaccion(
         fecha=f, tipo="salida", monto=monto, metodo_pago=metodo_pago,
         concepto=concepto.strip(), numero_documento=numero_documento.strip(),
         documento_path=doc_path, descripcion=descripcion.strip(), categoria=cat
     )
-    db.add(tx)
-    db.commit()
+    db.add(tx); db.commit()
     return RedirectResponse(url="/salidas?ok=1", status_code=303)
 
 # VER
@@ -150,7 +184,7 @@ def actualizar_salida(
     request: Request,
     fecha: str = Form(...),
     monto: float = Form(...),
-    categoria_id: int | None = Form(None),
+    categoria_id: str | None = Form(None),   # 👈 string
     metodo_pago: str = Form("efectivo"),
     concepto: str = Form(""),
     numero_documento: str = Form(""),
@@ -173,15 +207,15 @@ def actualizar_salida(
     tx.concepto = concepto.strip()
     tx.numero_documento = numero_documento.strip()
     tx.descripcion = descripcion.strip()
-    tx.categoria = db.get(Categoria, categoria_id) if categoria_id else None
 
-    # Manejo de archivo
+    cat_id = int(categoria_id) if categoria_id and categoria_id.isdigit() else None
+    tx.categoria = db.get(Categoria, cat_id) if cat_id else None
+
     if eliminar_documento == "1" and tx.documento_path:
         eliminar_archivo(tx.documento_path)
         tx.documento_path = ""
 
     if documento and documento.filename:
-        # si ya tenía uno, bórralo
         if tx.documento_path:
             eliminar_archivo(tx.documento_path)
         tx.documento_path = guardar_archivo(documento)

@@ -43,6 +43,13 @@
   </div>
 </form>
 
+<div class="mb-4 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
+  <span class="text-sm text-slate-300">Total (aplicando filtros)</span>
+  <span class="text-2xl font-bold text-rose-400">
+    ${{ '%.0f'|format(total) }}
+  </span>
+</div>
+
 <div class="overflow-x-auto rounded-2xl border border-slate-800">
   <table class="min-w-full text-sm">
     <thead class="bg-slate-900 text-slate-300">
