@@ -44,6 +44,8 @@
     <input type="text" name="q" value="{{ filtros.q or '' }}" placeholder="Concepto, desc, doc…"
            class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
   </div>
+  <input type="hidden" name="sort" value="{{ filtros.sort }}">
+  <input type="hidden" name="dir" value="{{ filtros.dir }}">
   <div class="md:col-span-6 flex gap-2">
     <button class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Filtrar</button>
     <a href="/transacciones" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Limpiar</a>
@@ -54,39 +56,55 @@
 <div class="grid md:grid-cols-3 gap-3 mb-4">
   <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
     <div class="text-sm text-slate-400">Total Entradas</div>
-    <div class="text-2xl font-bold text-emerald-400">${{ '%.0f'|format(tot.entradas) }}</div>
+    <div class="text-2xl font-bold text-emerald-400">{{ tot.entradas|clp }}</div>
   </div>
   <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
     <div class="text-sm text-slate-400">Total Salidas</div>
-    <div class="text-2xl font-bold text-rose-400">${{ '%.0f'|format(tot.salidas) }}</div>
+    <div class="text-2xl font-bold text-rose-400">{{ tot.salidas|clp }}</div>
   </div>
   <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
     <div class="text-sm text-slate-400">Neto (Entradas - Salidas)</div>
     {% set color = 'text-emerald-400' if tot.neto >= 0 else 'text-rose-400' %}
-    <div class="text-2xl font-bold {{ color }}">${{ '%.0f'|format(tot.neto) }}</div>
+    <div class="text-2xl font-bold {{ color }}">{{ tot.neto|clp }}</div>
   </div>
 </div>
+
+{% macro sort_link(col_key, label) -%}
+  {% set is_current = (filtros.sort == col_key) %}
+  {% set next_dir = 'asc' if (not is_current or filtros.dir == 'desc') else 'desc' %}
+  <a
+    href="/transacciones?desde={{ filtros.desde }}&hasta={{ filtros.hasta }}&categoria_id={{ filtros.categoria_id or '' }}&metodo_pago={{ filtros.metodo_pago }}&tipo={{ filtros.tipo }}&q={{ filtros.q }}&limit={{ filtros.limit }}&sort={{ col_key }}&dir={{ next_dir }}"
+    class="inline-flex items-center gap-1 hover:text-white"
+  >
+    <span>{{ label }}</span>
+    {% if is_current %}
+      <span class="text-xs opacity-70">{{ '▲' if filtros.dir == 'asc' else '▼' }}</span>
+    {% else %}
+      <span class="text-xs opacity-40">⇅</span>
+    {% endif %}
+  </a>
+{%- endmacro %}
 
 <div class="overflow-x-auto rounded-2xl border border-slate-800">
   <table class="min-w-full text-sm">
     <thead class="bg-slate-900 text-slate-300">
       <tr>
-        <th class="px-3 py-2 text-left">Fecha</th>
-        <th class="px-3 py-2 text-left">Tipo</th>
-        <th class="px-3 py-2 text-left">Monto</th>
-        <th class="px-3 py-2 text-left">Método</th>
-        <th class="px-3 py-2 text-left">Categoría</th>
-        <th class="px-3 py-2 text-left">Descripción</th>
+        <th class="px-3 py-2 text-left">{{ sort_link('fecha','Fecha') }}</th>
+        <th class="px-3 py-2 text-left">{{ sort_link('tipo','Tipo') }}</th>
+        <th class="px-3 py-2 text-left">{{ sort_link('monto','Monto') }}</th>
+        <th class="px-3 py-2 text-left">{{ sort_link('metodo','Método') }}</th>
+        <th class="px-3 py-2 text-left">{{ sort_link('categoria','Categoría') }}</th>
+        <th class="px-3 py-2 text-left">{{ sort_link('descripcion','Descripción') }}</th>
       </tr>
     </thead>
     <tbody>
       {% for t in transacciones %}
       <tr class="border-t border-slate-800">
-        <td class="px-3 py-2">{{ t.fecha }}</td>
+        <td class="px-3 py-2">{{ t.fecha|fecha_cl }}</td>
         <td class="px-3 py-2">{{ t.tipo }}</td>
         <td class="px-3 py-2">
           <span class="{{ 'text-emerald-400' if t.tipo=='entrada' else 'text-rose-400' }}">
-            ${{ '%.0f'|format(t.monto) }}
+            {{ t.monto|clp }}
           </span>
         </td>
         <td class="px-3 py-2">{{ t.metodo_pago }}</td>

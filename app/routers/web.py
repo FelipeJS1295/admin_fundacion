@@ -66,13 +66,14 @@ def home(request: Request, db: Session = Depends(get_db)):
 def transacciones_list(
     request: Request,
     db: Session = Depends(get_db),
-    # ⚠️ como strings para tolerar "" desde el formulario
     desde: str | None = Query(None),
     hasta: str | None = Query(None),
     categoria_id: str | None = Query(None),
     metodo_pago: str | None = Query(None),
     tipo: str | None = Query(None),        # "entrada" | "salida" | None
     q: str | None = Query(None),
+    sort: str | None = Query("fecha"),     # 👈 nuevo
+    dir: str | None = Query("desc"),       # 👈 nuevo
     limit: int = Query(100, ge=1, le=1000),
 ):
     # ---- helpers seguros ----
@@ -90,7 +91,7 @@ def transacciones_list(
     d2 = _parse_date(hasta)
     cat_id = _parse_int(categoria_id)
 
-    # ---- filtros comunes para lista y totales ----
+    # ---- filtros comunes ----
     filtros = []
     if d1: filtros.append(Transaccion.fecha >= d1)
     if d2: filtros.append(Transaccion.fecha <= d2)
@@ -105,28 +106,38 @@ def transacciones_list(
             Transaccion.numero_documento.like(like),
         ))
 
-    base_q = db.query(Transaccion).filter(*filtros)
+    # Usamos join para poder ordenar por nombre de categoría
+    base_q = (db.query(Transaccion)
+                .outerjoin(Categoria, Transaccion.categoria_id == Categoria.id)
+                .filter(*filtros))
 
-    # ---- totales usando los MISMOS filtros ----
-    total_entradas = (
-        db.query(func.coalesce(func.sum(Transaccion.monto), 0))
-          .filter(*filtros, Transaccion.tipo == "entrada")
-          .scalar()
-        or 0
-    )
-    total_salidas = (
-        db.query(func.coalesce(func.sum(Transaccion.monto), 0))
-          .filter(*filtros, Transaccion.tipo == "salida")
-          .scalar()
-        or 0
-    )
+    # ---- totales con mismos filtros ----
+    total_entradas = (db.query(func.coalesce(func.sum(Transaccion.monto), 0))
+                        .filter(*filtros, Transaccion.tipo == "entrada")
+                        .scalar() or 0)
+    total_salidas  = (db.query(func.coalesce(func.sum(Transaccion.monto), 0))
+                        .filter(*filtros, Transaccion.tipo == "salida")
+                        .scalar() or 0)
     neto = total_entradas - total_salidas
 
-    # ---- listado ----
-    transacciones = (
-        base_q.order_by(Transaccion.fecha.desc(), Transaccion.id.desc())
-              .limit(limit).all()
-    )
+    # ---- ordenamiento seguro ----
+    order_map = {
+        "fecha": Transaccion.fecha,
+        "tipo": Transaccion.tipo,
+        "monto": Transaccion.monto,
+        "metodo": Transaccion.metodo_pago,
+        "categoria": Categoria.nombre,
+        "descripcion": Transaccion.descripcion,
+        "id": Transaccion.id,
+    }
+    sort = (sort or "fecha").lower()
+    dir  = (dir or "desc").lower()
+    col = order_map.get(sort, Transaccion.fecha)
+    ordering = col.desc() if dir == "desc" else col.asc()
+
+    transacciones = (base_q
+                     .order_by(ordering, Transaccion.id.desc())
+                     .limit(limit).all())
 
     categorias = db.query(Categoria).order_by(Categoria.nombre).all()
 
@@ -147,5 +158,7 @@ def transacciones_list(
             "tipo": tipo or "",
             "q": q or "",
             "limit": limit,
+            "sort": sort,   # 👈 nuevo
+            "dir": dir,     # 👈 nuevo
         }
     })
