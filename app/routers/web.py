@@ -7,6 +7,9 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from datetime import datetime
+from sqlalchemy import or_, func
+
 from app.db import get_db
 from app.models import Transaccion, Categoria
 
@@ -60,40 +63,70 @@ def home(request: Request, db: Session = Depends(get_db)):
 
 
 @router.get("/transacciones", response_class=HTMLResponse)
-def listar_transacciones(
+def transacciones_list(
     request: Request,
     db: Session = Depends(get_db),
-    tipo: Optional[str] = Query(None, description="entrada|salida"),
-    categoria_id: Optional[int] = Query(None),
-    metodo_pago: Optional[str] = Query(None),
-    desde: Optional[date] = Query(None),
-    hasta: Optional[date] = Query(None),
-    q: Optional[str] = Query(None, description="buscar en descripción"),
+    # ⚠️ como strings para tolerar "" desde el formulario
+    desde: str | None = Query(None),
+    hasta: str | None = Query(None),
+    categoria_id: str | None = Query(None),
+    metodo_pago: str | None = Query(None),
+    tipo: str | None = Query(None),        # "entrada" | "salida" | None
+    q: str | None = Query(None),
     limit: int = Query(100, ge=1, le=1000),
 ):
-    """
-    Lista de transacciones (últimas N). Soporta filtros por querystring:
-    /transacciones?tipo=entrada&categoria_id=1&desde=2025-01-01&hasta=2025-12-31&q=aporte
-    """
-    query = db.query(Transaccion)
+    # ---- helpers seguros ----
+    def _parse_date(s: str | None):
+        if not s: return None
+        try:
+            return datetime.fromisoformat(s).date()
+        except Exception:
+            return None
 
-    if tipo in {"entrada", "salida"}:
-        query = query.filter(Transaccion.tipo == tipo)
-    if categoria_id:
-        query = query.filter(Transaccion.categoria_id == categoria_id)
-    if metodo_pago:
-        query = query.filter(Transaccion.metodo_pago == metodo_pago)
-    if desde:
-        query = query.filter(Transaccion.fecha >= desde)
-    if hasta:
-        query = query.filter(Transaccion.fecha <= hasta)
+    def _parse_int(s: str | None):
+        return int(s) if s and s.isdigit() else None
+
+    d1 = _parse_date(desde)
+    d2 = _parse_date(hasta)
+    cat_id = _parse_int(categoria_id)
+
+    # ---- filtros comunes para lista y totales ----
+    filtros = []
+    if d1: filtros.append(Transaccion.fecha >= d1)
+    if d2: filtros.append(Transaccion.fecha <= d2)
+    if cat_id: filtros.append(Transaccion.categoria_id == cat_id)
+    if metodo_pago: filtros.append(Transaccion.metodo_pago == metodo_pago)
+    if tipo in ("entrada", "salida"): filtros.append(Transaccion.tipo == tipo)
     if q:
-        # MySQL es case-insensitive por collation; LIKE alcanza.
-        query = query.filter(Transaccion.descripcion.like(f"%{q}%"))
+        like = f"%{q}%"
+        filtros.append(or_(
+            Transaccion.descripcion.like(like),
+            Transaccion.concepto.like(like),
+            Transaccion.numero_documento.like(like),
+        ))
 
-    transacciones = query.order_by(
-        Transaccion.fecha.desc(), Transaccion.id.desc()
-    ).limit(limit).all()
+    base_q = db.query(Transaccion).filter(*filtros)
+
+    # ---- totales usando los MISMOS filtros ----
+    total_entradas = (
+        db.query(func.coalesce(func.sum(Transaccion.monto), 0))
+          .filter(*filtros, Transaccion.tipo == "entrada")
+          .scalar()
+        or 0
+    )
+    total_salidas = (
+        db.query(func.coalesce(func.sum(Transaccion.monto), 0))
+          .filter(*filtros, Transaccion.tipo == "salida")
+          .scalar()
+        or 0
+    )
+    neto = total_entradas - total_salidas
+
+    # ---- listado ----
+    transacciones = (
+        base_q.order_by(Transaccion.fecha.desc(), Transaccion.id.desc())
+              .limit(limit).all()
+    )
 
     categorias = db.query(Categoria).order_by(Categoria.nombre).all()
 
@@ -101,8 +134,18 @@ def listar_transacciones(
         "request": request,
         "transacciones": transacciones,
         "categorias": categorias,
+        "tot": {
+            "entradas": float(total_entradas),
+            "salidas": float(total_salidas),
+            "neto": float(neto),
+        },
         "filtros": {
-            "tipo": tipo, "categoria_id": categoria_id, "metodo_pago": metodo_pago,
-            "desde": desde, "hasta": hasta, "q": q, "limit": limit
+            "desde": d1.isoformat() if d1 else "",
+            "hasta": d2.isoformat() if d2 else "",
+            "categoria_id": cat_id,
+            "metodo_pago": metodo_pago or "",
+            "tipo": tipo or "",
+            "q": q or "",
+            "limit": limit,
         }
     })

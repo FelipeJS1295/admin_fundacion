@@ -1,6 +1,71 @@
 {% extends "layouts/base.html" %}
 {% block content %}
-<h2 class="text-xl font-semibold mb-4">Transacciones (últimas 100)</h2>
+<h2 class="text-xl font-semibold mb-4">Transacciones</h2>
+
+<form method="get" class="grid gap-3 md:grid-cols-6 mb-4">
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Desde</label>
+    <input type="date" name="desde" value="{{ filtros.desde or '' }}"
+           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Hasta</label>
+    <input type="date" name="hasta" value="{{ filtros.hasta or '' }}"
+           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Categoría</label>
+    <select name="categoria_id" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      <option value="">Todas</option>
+      {% for c in categorias %}
+        <option value="{{ c.id }}" {{ 'selected' if filtros.categoria_id==c.id else '' }}>{{ c.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Método</label>
+    <select name="metodo_pago" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      <option value="">Todos</option>
+      {% for m in ['efectivo','transferencia','debito','credito','otros'] %}
+        <option value="{{ m }}" {{ 'selected' if filtros.metodo_pago==m else '' }}>{{ m|capitalize }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Tipo</label>
+    <select name="tipo" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      <option value="">Entradas y salidas</option>
+      <option value="entrada" {{ 'selected' if filtros.tipo=='entrada' else '' }}>Entradas</option>
+      <option value="salida"  {{ 'selected' if filtros.tipo=='salida'  else '' }}>Salidas</option>
+    </select>
+  </div>
+  <div class="md:col-span-2">
+    <label class="block text-sm text-slate-300 mb-1">Buscar</label>
+    <input type="text" name="q" value="{{ filtros.q or '' }}" placeholder="Concepto, desc, doc…"
+           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+  </div>
+  <div class="md:col-span-6 flex gap-2">
+    <button class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Filtrar</button>
+    <a href="/transacciones" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Limpiar</a>
+  </div>
+</form>
+
+<!-- Totales -->
+<div class="grid md:grid-cols-3 gap-3 mb-4">
+  <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+    <div class="text-sm text-slate-400">Total Entradas</div>
+    <div class="text-2xl font-bold text-emerald-400">${{ '%.0f'|format(tot.entradas) }}</div>
+  </div>
+  <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+    <div class="text-sm text-slate-400">Total Salidas</div>
+    <div class="text-2xl font-bold text-rose-400">${{ '%.0f'|format(tot.salidas) }}</div>
+  </div>
+  <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+    <div class="text-sm text-slate-400">Neto (Entradas - Salidas)</div>
+    {% set color = 'text-emerald-400' if tot.neto >= 0 else 'text-rose-400' %}
+    <div class="text-2xl font-bold {{ color }}">${{ '%.0f'|format(tot.neto) }}</div>
+  </div>
+</div>
 
 <div class="overflow-x-auto rounded-2xl border border-slate-800">
   <table class="min-w-full text-sm">
@@ -19,7 +84,11 @@
       <tr class="border-t border-slate-800">
         <td class="px-3 py-2">{{ t.fecha }}</td>
         <td class="px-3 py-2">{{ t.tipo }}</td>
-        <td class="px-3 py-2">${{ "%.0f"|format(t.monto) }}</td>
+        <td class="px-3 py-2">
+          <span class="{{ 'text-emerald-400' if t.tipo=='entrada' else 'text-rose-400' }}">
+            ${{ '%.0f'|format(t.monto) }}
+          </span>
+        </td>
         <td class="px-3 py-2">{{ t.metodo_pago }}</td>
         <td class="px-3 py-2">{{ t.categoria.nombre if t.categoria else '-' }}</td>
         <td class="px-3 py-2">{{ t.descripcion or '' }}</td>
