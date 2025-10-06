@@ -1,9 +1,8 @@
-# app/routers/pacientes.py
 from fastapi import APIRouter, Request, Depends, Form, UploadFile, File, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, asc, desc
 from datetime import datetime
 from pathlib import Path
 import os, shutil, unicodedata
@@ -49,9 +48,26 @@ def pacientes_index(
     request: Request,
     db: Session = Depends(get_db),
     q: str | None = None,
-    activo: str | None = None
+    activo: str | None = None,
+    limit: int = 50,
+    sort: str = "creado",
+    dir: str = "desc",
 ):
-    query = db.query(Paciente).join(Comuna)
+    """
+    Listado con filtros y ordenamiento:
+      - q: busca por nombres, apellidos o RUT (ILIKE)
+      - activo: "1" / "0" / None
+      - limit: 25/50/100/200
+      - sort: id | nombre | rut | sexo | comuna | activo | creado
+      - dir: asc | desc
+    """
+    # Base: outerjoin por si hay pacientes sin comuna
+    query = (
+        db.query(Paciente)
+        .outerjoin(Comuna, Paciente.comuna_id == Comuna.id)
+    )
+
+    # Filtro búsqueda libre
     if q:
         like = f"%{q}%"
         query = query.filter(
@@ -59,12 +75,51 @@ def pacientes_index(
             (Paciente.apellidos.ilike(like)) |
             (Paciente.rut.ilike(like))
         )
+
+    # Filtro estado
     if activo in ("1", "0"):
         query = query.filter(Paciente.activo == (activo == "1"))
-    pacientes = query.order_by(Paciente.creado_en.desc()).all()
+
+    # Total antes de limitar
+    total_pacientes = query.count()
+
+    # Mapeo de columnas ordenables
+    # Usamos func.concat para compatibilidad (evita operador || específico del motor)
+    nombre_expr = func.lower(func.concat(Paciente.nombres, " ", Paciente.apellidos))
+    sort_map = {
+        "id": Paciente.id,
+        "nombre": nombre_expr,
+        "rut": func.lower(Paciente.rut),
+        "sexo": Paciente.sexo,   # Enum, ordena por valor
+        "comuna": func.lower(Comuna.nombre),
+        "activo": Paciente.activo,
+        "creado": Paciente.creado_en,  # campo típico timestamp de creación
+    }
+
+    sort_col = sort_map.get(sort, sort_map["creado"])
+    order_fn = asc if dir == "asc" else desc
+
+    query = query.order_by(order_fn(sort_col))
+
+    # Seguridad para limit
+    if limit not in (25, 50, 100, 200):
+        limit = 50
+
+    pacientes = query.limit(limit).all()
+
+    filtros = {
+        "q": q or "",
+        "activo": activo or "",
+        "limit": limit,
+        "sort": sort,
+        "dir": dir,
+    }
+
     return templates.TemplateResponse("pacientes/index.html", {
         "request": request,
         "pacientes": pacientes,
+        "total_pacientes": total_pacientes,
+        "filtros": filtros,
         "path": request.url.path
     })
 
