@@ -1,39 +1,173 @@
 {% extends "layouts/base.html" %}
 {% block content %}
-<h1 class="text-xl font-bold mb-4">Paciente #{{ p.id }}</h1>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-  <div class="md:col-span-2 space-y-2">
-    <div><strong>Nombre:</strong> {{ p.nombres }} {{ p.apellidos }}</div>
-    <div><strong>RUT:</strong> {{ p.rut }}</div>
-    <div><strong>Sexo:</strong> {{ p.sexo.value }}</div>
-    <div><strong>Nacimiento:</strong> {{ p.fecha_nacimiento }}</div>
-    <div><strong>Dirección:</strong> {{ p.direccion }}</div>
-    <div><strong>Comuna:</strong> {{ p.comuna.nombre if p.comuna else '' }}</div>
-    <div><strong>Teléfono:</strong> {{ p.telefono or '-' }}</div>
-    <div><strong>Email:</strong> {{ p.email or '-' }}</div>
-    <div><strong>Previsión:</strong> {{ p.prevision_salud.value if p.prevision_salud else '-' }}</div>
-    <div><strong>Movilidad:</strong> {{ p.movilidad.value if p.movilidad else '-' }}</div>
-    <div><strong>Dependencia:</strong> {{ p.dependencia.value if p.dependencia else '-' }}</div>
-    <div><strong>Cuidador:</strong> {{ p.cuidador_principal or '-' }} ({{ p.cuidador_parentesco or 'N/A' }})</div>
-    <div><strong>Vive solo:</strong> {{ 'Sí' if p.vive_solo else 'No' }}</div>
-    <div><strong>Red de apoyo:</strong> {{ p.red_apoyo or '-' }}</div>
-    <div><strong>Puntaje vulnerabilidad:</strong> {{ p.puntaje_vulnerabilidad if p.puntaje_vulnerabilidad is not none else '-' }}</div>
-    <div><strong>Observaciones:</strong> {{ p.observaciones or '-' }}</div>
-    <div><strong>Enfermedades:</strong> {{ enfermedades|join(', ') if enfermedades else 'Ninguna registrada' }}</div>
-    <div><strong>Activo:</strong> {{ 'Sí' if p.activo else 'No' }}</div>
-  </div>
-
-  <div>
-    {% if p.imagen_path %}
-      <img class="border rounded" src="/static/pacientes/{{ p.imagen_path.split('/')[-1] }}" alt="Foto paciente">
-    {% else %}
-      <div class="border rounded p-4 text-gray-500">Sin imagen</div>
-    {% endif %}
+<!-- Header / acciones -->
+<div class="mb-5 flex items-center gap-2">
+  <a href="/pacientes" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200">
+    ← Volver
+  </a>
+  <div class="ml-auto flex items-center gap-2">
+    <a href="/pacientes/{{ p.id }}/editar" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white">Editar</a>
+    <form method="post" action="/pacientes/{{ p.id }}/eliminar" onsubmit="return confirm('¿Eliminar paciente?');">
+      <button class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white">Eliminar</button>
+    </form>
   </div>
 </div>
 
-<div class="mt-4">
-  <a href="/pacientes" class="px-4 py-2 border rounded">Volver</a>
+<!-- Ficha -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+  <!-- Columna izquierda: Identidad -->
+  <section class="lg:col-span-1 rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
+    <div class="flex items-start gap-4">
+      <div class="w-28 h-28 rounded-2xl overflow-hidden border border-slate-700 bg-slate-800 flex items-center justify-center">
+        {% if p.imagen_path %}
+          <img class="w-full h-full object-cover" src="/{{ p.imagen_path }}" alt="Foto paciente">
+        {% else %}
+          <div class="text-slate-400 text-xs text-center px-2">Sin imagen</div>
+        {% endif %}
+      </div>
+      <div class="flex-1">
+        <h1 class="text-xl font-semibold text-white leading-tight">
+          {{ p.nombres }} {{ p.apellidos }}
+        </h1>
+        <p class="text-slate-400 text-sm">Paciente #{{ p.id }}</p>
+
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="px-2.5 py-1 rounded-lg text-xs border
+            {{ 'bg-emerald-900/30 text-emerald-300 border-emerald-800' if p.activo else 'bg-rose-900/30 text-rose-300 border-rose-800' }}">
+            {{ 'Activo' if p.activo else 'Inactivo' }}
+          </span>
+          {% if p.prevision_salud %}
+          <span class="px-2.5 py-1 rounded-lg text-xs border bg-sky-900/30 text-sky-300 border-sky-800">
+            Previsión: {{ p.prevision_salud.value }}
+          </span>
+          {% endif %}
+          {% if p.movilidad %}
+          <span class="px-2.5 py-1 rounded-lg text-xs border bg-amber-900/30 text-amber-300 border-amber-800">
+            Movilidad: {{ p.movilidad.value }}
+          </span>
+          {% endif %}
+          {% if p.dependencia %}
+          <span class="px-2.5 py-1 rounded-lg text-xs border bg-fuchsia-900/30 text-fuchsia-300 border-fuchsia-800">
+            Dependencia: {{ p.dependencia.value }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5 grid grid-cols-1 gap-3 text-sm">
+      <div class="flex justify-between gap-3">
+        <span class="text-slate-400">RUT</span>
+        <span class="text-slate-200 font-medium">{{ p.rut }}</span>
+      </div>
+      <div class="flex justify-between gap-3">
+        <span class="text-slate-400">Sexo</span>
+        <span class="text-slate-200">{{ p.sexo.value }}</span>
+      </div>
+      <div class="flex justify-between gap-3">
+        <span class="text-slate-400">Nacimiento</span>
+        <span class="text-slate-200">{{ p.fecha_nacimiento }}</span>
+        {# si tienes filtro: {{ p.fecha_nacimiento|fecha_cl }} #}
+      </div>
+      <div class="flex justify-between gap-3">
+        <span class="text-slate-400">Teléfono</span>
+        <span class="text-slate-200">{{ p.telefono or '-' }}</span>
+      </div>
+      <div class="flex justify-between gap-3">
+        <span class="text-slate-400">Email</span>
+        <span class="text-slate-200">{{ p.email or '-' }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Columna derecha: Detalle -->
+  <section class="lg:col-span-2 space-y-5">
+    <!-- Datos de contacto y domicilio -->
+    <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
+      <h2 class="text-slate-200 font-semibold mb-4">Información de contacto</h2>
+      <div class="grid sm:grid-cols-2 gap-4 text-sm">
+        <div>
+          <div class="text-slate-400">Dirección</div>
+          <div class="text-slate-200">{{ p.direccion }}</div>
+        </div>
+        <div>
+          <div class="text-slate-400">Comuna</div>
+          <div class="text-slate-200">{{ p.comuna.nombre if p.comuna else '-' }}</div>
+        </div>
+        <div>
+          <div class="text-slate-400">Cuidador Principal</div>
+          <div class="text-slate-200">
+            {{ p.cuidador_principal or '-' }}
+            {% if p.cuidador_parentesco %}<span class="text-slate-400">({{ p.cuidador_parentesco }})</span>{% endif %}
+          </div>
+        </div>
+        <div>
+          <div class="text-slate-400">Vive solo</div>
+          <div class="text-slate-200">{{ 'Sí' if p.vive_solo else 'No' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Salud -->
+    <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
+      <h2 class="text-slate-200 font-semibold mb-4">Situación de salud</h2>
+
+      <div class="grid sm:grid-cols-3 gap-4 text-sm">
+        <div>
+          <div class="text-slate-400">Previsión</div>
+          <div class="text-slate-200">{{ p.prevision_salud.value if p.prevision_salud else '-' }}</div>
+        </div>
+        <div>
+          <div class="text-slate-400">Movilidad</div>
+          <div class="text-slate-200">{{ p.movilidad.value if p.movilidad else '-' }}</div>
+        </div>
+        <div>
+          <div class="text-slate-400">Dependencia</div>
+          <div class="text-slate-200">{{ p.dependencia.value if p.dependencia else '-' }}</div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-slate-400 text-sm mb-2">Enfermedades</div>
+        {% if enfermedades and enfermedades|length > 0 %}
+          <div class="flex flex-wrap gap-2">
+            {% for e in enfermedades %}
+              <span class="px-2.5 py-1 rounded-xl text-xs border bg-slate-800 text-slate-200 border-slate-700">{{ e }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-slate-500 text-sm">Ninguna registrada</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Observaciones / Red de apoyo / Puntaje -->
+    <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
+      <h2 class="text-slate-200 font-semibold mb-4">Notas y evaluación</h2>
+      <div class="grid md:grid-cols-3 gap-4 text-sm">
+        <div>
+          <div class="text-slate-400 mb-1">Red de apoyo</div>
+          <div class="text-slate-200">{{ p.red_apoyo or '-' }}</div>
+        </div>
+        <div>
+          <div class="text-slate-400 mb-1">Puntaje de vulnerabilidad</div>
+          <div class="text-slate-200">{{ p.puntaje_vulnerabilidad if p.puntaje_vulnerabilidad is not none else '-' }}</div>
+        </div>
+        <div>
+          <div class="text-slate-400 mb-1">Estado</div>
+          <div class="text-slate-200">{{ 'Activo' if p.activo else 'Inactivo' }}</div>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="text-slate-400 mb-1 text-sm">Observaciones</div>
+        <div class="rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-slate-200 min-h-16">
+          {{ p.observaciones or '—' }}
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
+
 {% endblock %}
+
