@@ -6,6 +6,7 @@ import os
 
 from app.db import engine, SessionLocal
 from app.models import Base
+from app.models import User
 from app.routers.web import router as web_router
 from app.routers.entradas import router as entradas_router
 from app.routers.salidas import router as salidas_router
@@ -30,13 +31,24 @@ PUBLIC_PATH_PREFIXES = ("/static", "/login", "/openapi.json", "/docs", "/redoc",
 
 @app.middleware("http")
 async def auth_required(request: Request, call_next):
+    # siempre inicializa
+    request.state.user = None
+
     path = request.url.path
     if path.startswith(PUBLIC_PATH_PREFIXES):
         return await call_next(request)
-    # <-- aquí ya podremos usar request.session porque SessionMiddleware
-    #     irá "por fuera" y se ejecutará antes (ver línea más abajo)
-    if not request.session.get("user_id"):
+
+    user_id = request.session.get("user_id")
+    if not user_id:
         return RedirectResponse(url=f"/login?next={path}", status_code=303)
+
+    # Cargar el usuario una sola vez para toda la request (para el sidebar y plantillas)
+    try:
+        db = SessionLocal()
+        request.state.user = db.get(User, user_id)
+    finally:
+        db.close()
+
     return await call_next(request)
 
 # ⚠️ Añade SessionMiddleware DESPUÉS del middleware anterior
