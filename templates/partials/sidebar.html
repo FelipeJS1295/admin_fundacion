@@ -1,7 +1,7 @@
-{# === Guardas globales para no reventar si no hay user ni path === #}
-{% set path = (request.url.path if request is defined and request else '') %}
-{% set user_obj = (request.state.user if request is defined and request and request.state is not none and hasattr(request.state, 'user') else None) %}
-{% set rol = (user_obj.rol if user_obj else 'User') %}
+{# ——— Guardas globales sin hasattr ——— #}
+{% set path = request.url.path|default('', true) %}
+{% set user_obj = request.state.user|default(None, true) %}
+{% set rol = user_obj.rol|default('User', true) %}
 
 <aside id="sidebar"
        class="fixed z-50 inset-y-0 left-0 w-72 translate-x-[-110%] md:translate-x-0 md:static md:z-auto
