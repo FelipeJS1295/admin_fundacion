@@ -1,558 +1,392 @@
 {% extends "layouts/base.html" %}
 {% block content %}
-<div class="max-w-7xl mx-auto">
-  <!-- STEPPER -->
-  <div class="sticky top-0 z-30 backdrop-blur bg-white/70 dark:bg-slate-900/70 border-b border-slate-200/60 dark:border-slate-800/60 rounded-b-2xl px-4 py-3 mb-6">
-    <div class="flex items-center justify-between gap-4">
-      <div class="flex items-center gap-2 text-sm">
-        <button type="button" data-step="1" class="step-btn px-3 py-1.5 rounded-lg ring-1 ring-slate-300 dark:ring-slate-700 bg-emerald-600 text-white">1. Datos</button>
-        <button type="button" data-step="2" class="step-btn px-3 py-1.5 rounded-lg ring-1 ring-slate-300 dark:ring-slate-700">2. Domicilio</button>
-        <button type="button" data-step="3" class="step-btn px-3 py-1.5 rounded-lg ring-1 ring-slate-300 dark:ring-slate-700">3. Salud</button>
-        <button type="button" data-step="4" class="step-btn px-3 py-1.5 rounded-lg ring-1 ring-slate-300 dark:ring-slate-700">4. Contacto</button>
-        <button type="button" data-step="5" class="step-btn px-3 py-1.5 rounded-lg ring-1 ring-slate-300 dark:ring-slate-700">5. Admin</button>
-        <button type="button" data-step="6" class="step-btn px-3 py-1.5 rounded-lg ring-1 ring-slate-300 dark:ring-slate-700">6. Socioeco</button>
-        <button type="button" data-step="7" class="step-btn px-3 py-1.5 rounded-lg ring-1 ring-slate-300 dark:ring-slate-700">7. Docs</button>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="w-48">
-          <div class="flex justify-between text-xs text-slate-500"><span>Avance</span><span id="progressPct">0%</span></div>
-          <div class="w-full h-2 rounded bg-slate-200 dark:bg-slate-800 overflow-hidden">
-            <div id="progressBar" class="h-2 w-0 bg-emerald-500 transition-all"></div>
-          </div>
-        </div>
-        <button id="btnClearDraft" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Borrar borrador</button>
-      </div>
-    </div>
-  </div>
-
-  <header class="flex items-center justify-between mb-4">
+<div class="max-w-6xl mx-auto">
+  <header class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-semibold tracking-tight">Nuevo Paciente</h1>
-    <div class="text-sm text-slate-500">Obligatorios: <span class="text-rose-600">*</span></div>
+    <div class="text-sm text-slate-500">Los campos con <span class="text-rose-600">*</span> son obligatorios</div>
   </header>
 
-  <form method="post" enctype="multipart/form-data" id="frmPaciente" class="grid gap-6 md:grid-cols-3">
-    <!-- FORM (col 1-2) -->
-    <div class="md:col-span-2 grid gap-6">
-      <!-- STEP 1: Datos personales -->
-      <section data-step-panel="1" class="card">
-        <div class="card-hd"><h2 class="card-tt">Datos personales</h2></div>
-        <div class="card-bd grid grid-cols-1 md:grid-cols-2 gap-5">
-          <label class="block">
-            <span class="lbl">Nombres <span class="req">*</span></span>
-            <input name="nombres" required autocomplete="given-name" class="inp" />
-          </label>
-
-          <label class="block">
-            <span class="lbl">Apellidos <span class="req">*</span></span>
-            <input name="apellidos" required autocomplete="family-name" class="inp" />
-          </label>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:col-span-2">
-            <label class="block">
-              <span class="lbl">RUT <span class="req">*</span></span>
-              <input name="rut" id="rut" placeholder="12.345.678-9" required class="inp" />
-              <small id="rutHelp" class="hint">Se valida y formatea automáticamente.</small>
-            </label>
-            <label class="block">
-              <span class="lbl">Estado del RUT</span>
-              <div id="rutState" class="text-sm mt-2 text-slate-500">—</div>
-            </label>
-          </div>
-
-          <label class="block">
-            <span class="lbl">Sexo</span>
-            <select name="sexo" class="inp">
-              <option value="">—</option>
-              <option value="M">Masculino</option>
-              <option value="F">Femenino</option>
-              <option value="Otro">Otro</option>
-            </select>
-          </label>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:col-span-2">
-            <label class="block">
-              <span class="lbl">Fecha de nacimiento <span class="req">*</span></span>
-              <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" required class="inp" />
-            </label>
-            <div class="grid grid-cols-2 gap-3">
-              <label class="block">
-                <span class="lbl">Edad</span>
-                <input id="edad" class="inp" readonly>
-              </label>
-              <label class="block">
-                <span class="lbl">Rango etario</span>
-                <input id="rango_etario" class="inp" readonly>
-              </label>
-            </div>
-          </div>
-
-          <label class="block">
-            <span class="lbl">Teléfono</span>
-            <input name="telefono" id="telefono" placeholder="+56 9 1234 5678" class="inp" />
-          </label>
-
-          <label class="block md:col-span-2">
-            <span class="lbl">Email</span>
-            <input type="email" name="email" placeholder="correo@dominio.cl" class="inp" />
-          </label>
-        </div>
-      </section>
-
-      <!-- STEP 2: Domicilio -->
-      <section data-step-panel="2" class="card hidden">
-        <div class="card-hd"><h2 class="card-tt">Domicilio</h2></div>
-        <div class="card-bd grid grid-cols-1 md:grid-cols-2 gap-5">
-          <label class="block md:col-span-2">
-            <span class="lbl">Dirección <span class="req">*</span></span>
-            <input name="direccion" required autocomplete="street-address" class="inp" />
-          </label>
-
-          <label class="block md:col-span-2">
-            <span class="lbl">Comuna (Región del Biobío) <span class="req">*</span></span>
-            <div class="relative">
-              <input id="comunaSearch" placeholder="Buscar comuna…" class="inp pr-10" />
-              <svg class="ico-search" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
-            </div>
-            <select name="comuna_id" id="comunaSelect" required class="inp mt-2">
-              <option value="">Seleccione…</option>
-              <option>Concepción</option><option>Talcahuano</option><option>Hualpén</option><option>San Pedro de la Paz</option><option>Chiguayante</option><option>Penco</option><option>Tomé</option><option>Hualqui</option><option>Santa Juana</option><option>Coronel</option><option>Lota</option>
-              <option>Los Ángeles</option><option>Nacimiento</option><option>Laja</option><option>San Rosendo</option><option>Santa Bárbara</option><option>Quilaco</option><option>Quilleco</option><option>Mulchén</option><option>Negrete</option><option>Tucapel</option><option>Antuco</option><option>Cabrero</option><option>Yumbel</option><option>Alto Biobío</option>
-              <option>Curanilahue</option><option>Arauco</option><option>Lebu</option><option>Los Álamos</option><option>Cañete</option><option>Contulmo</option><option>Tirúa</option>
-            </select>
-            <small class="hint">Escribe para filtrar, luego selecciona.</small>
-          </label>
-        </div>
-      </section>
-
-      <!-- STEP 3: Salud -->
-      <section data-step-panel="3" class="card hidden">
-        <div class="card-hd"><h2 class="card-tt">Salud y red de apoyo</h2></div>
-        <div class="card-bd grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div class="grid grid-cols-2 gap-4 md:col-span-2">
-            <label class="block">
-              <span class="lbl">Previsión</span>
-              <select name="prevision_salud" class="inp">
-                <option value="">—</option><option>Fonasa</option><option>Isapre</option><option>Ninguna</option>
-              </select>
-            </label>
-            <label class="block">
-              <span class="lbl">Movilidad</span>
-              <select name="movilidad" class="inp">
-                <option value="">—</option><option>Autónomo</option><option>Asistido</option><option>Postrado</option>
-              </select>
-            </label>
-            <label class="block">
-              <span class="lbl">Dependencia</span>
-              <select name="dependencia" class="inp">
-                <option value="">—</option><option>Leve</option><option>Moderada</option><option>Severa</option>
-              </select>
-            </label>
-            <label class="inline-flex items-center gap-2 mt-6">
-              <input type="checkbox" name="vive_solo" class="chk" />
-              <span class="text-sm">Vive solo</span>
-            </label>
-          </div>
-
-          <label class="block">
-            <span class="lbl">Cuidador principal</span>
-            <input name="cuidador_principal" class="inp" />
-          </label>
-          <label class="block">
-            <span class="lbl">Parentesco cuidador</span>
-            <input name="cuidador_parentesco" class="inp" />
-          </label>
-
-          <label class="block md:col-span-2">
-            <span class="lbl">Red de apoyo</span>
-            <textarea name="red_apoyo" maxlength="500" data-counter="#cntApoyo" rows="3" class="inp"></textarea>
-            <small id="cntApoyo" class="hint">0 / 500</small>
-          </label>
-
-          <div class="grid grid-cols-2 gap-4 md:col-span-2">
-            <label class="block">
-              <span class="lbl">Puntaje vulnerabilidad (0–100)</span>
-              <input type="number" name="puntaje_vulnerabilidad" min="0" max="100" class="inp" />
-            </label>
-            <label class="inline-flex items-center gap-2 mt-7">
-              <input type="checkbox" name="activo" checked class="chk" />
-              <span class="text-sm">Activo</span>
-            </label>
-          </div>
-
-          <!-- Enfermedades -->
-          <div class="md:col-span-2 grid gap-2">
-            <label class="font-medium">Enfermedades (doble clic para agregar)</label>
-            <div class="flex gap-2">
-              <input id="enfSearch" placeholder="Buscar…" class="inp">
-              <button type="button" id="btnClearSearch" class="btn-secondary">Limpiar</button>
-            </div>
-            <div id="enfCatalogo" class="border rounded-xl h-60 overflow-auto p-2 space-y-1">
-              <ul id="enfList" class="space-y-1">
-                {% if enfermedades and enfermedades|length > 0 %}
-                  {% for e in enfermedades %}
-                    <li><button type="button" class="enf-item w-full text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-id="{{ e.id }}" data-name="{{ e.nombre }}">{{ e.nombre }}</button></li>
-                  {% endfor %}
-                {% else %}
-                  {% set enf_fijas = [
-                    'Hipertensión','Diabetes','Artrosis','Demencia/Alzheimer','Parkinson','EPOC','Insuficiencia cardíaca','Depresión','Osteoporosis','Insuficiencia renal crónica','Secuela de ACV','Cáncer','Hiperlipidemia','Hipotiroidismo','Incontinencia','Artritis reumatoide','Deterioro cognitivo leve','Desnutrición','Obesidad','Úlcera por presión'
-                  ] %}
-                  {% for n in enf_fijas %}
-                    <li><button type="button" class="enf-item w-full text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-id="" data-name="{{ n }}">{{ n }}</button></li>
-                  {% endfor %}
-                {% endif %}
-              </ul>
-            </div>
-            <div class="text-xs text-slate-500">Doble clic para añadir. Enter para agregar “otra”. Click en “×” para quitar.</div>
-
-            <!-- Otra -->
-            <div class="flex gap-2">
-              <input id="otra_enf_input" class="inp flex-1" placeholder="Agregar otra… (Enter o botón)">
-              <button type="button" id="btn_add_otra" class="btn-primary">Agregar</button>
-            </div>
-
-            <!-- Chips -->
-            <div>
-              <label class="block font-medium mb-1">Seleccionadas</label>
-              <div id="enf_seleccionadas" class="flex flex-wrap gap-2"></div>
-              <p class="hint">Se envían como <code>enfermedades_ids[]</code> (existentes) y <code>enfermedades_otras[]</code> (nuevas).</p>
-            </div>
-          </div>
-
-          <!-- Imagen -->
-          <div class="md:col-span-2 grid md:grid-cols-2 gap-4">
-            <div>
-              <label class="block font-medium mb-2">Imagen del paciente</label>
-              <input type="file" name="imagen" id="imagen" accept=".jpg,.jpeg,.png,.webp" class="inp">
-              <p class="hint">Formatos: JPG, PNG o WEBP. Máx 5MB.</p>
-              <div id="previewWrap" class="mt-3 hidden">
-                <img id="previewImg" class="w-48 h-48 object-cover rounded-xl ring-1 ring-slate-200 dark:ring-slate-800" alt="Previsualización">
-                <div class="mt-2">
-                  <button type="button" id="btnClearImg" class="btn-secondary">Quitar imagen</button>
-                </div>
-              </div>
-            </div>
-            <div></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- STEP 4: Contacto de emergencia -->
-      <section data-step-panel="4" class="card hidden">
-        <div class="card-hd"><h2 class="card-tt">Contacto de emergencia</h2></div>
-        <div class="card-bd grid grid-cols-1 md:grid-cols-2 gap-5">
-          <label class="block">
-            <span class="lbl">Nombre contacto <span class="req">*</span></span>
-            <input name="emerg_nombre" class="inp" required>
-          </label>
-          <label class="block">
-            <span class="lbl">Parentesco <span class="req">*</span></span>
-            <input name="emerg_parentesco" class="inp" required>
-          </label>
-          <label class="block">
-            <span class="lbl">Teléfono contacto <span class="req">*</span></span>
-            <input name="emerg_telefono" id="emerg_telefono" class="inp" placeholder="+56 9 1234 5678" required>
-          </label>
-          <label class="block">
-            <span class="lbl">Email contacto</span>
-            <input type="email" name="emerg_email" class="inp" placeholder="correo@dominio.cl">
-          </label>
-          <label class="block md:col-span-2">
-            <span class="lbl">Dirección contacto</span>
-            <input name="emerg_direccion" class="inp">
-          </label>
-        </div>
-      </section>
-
-      <!-- STEP 5: Datos administrativos -->
-      <section data-step-panel="5" class="card hidden">
-        <div class="card-hd"><h2 class="card-tt">Datos administrativos</h2></div>
-        <div class="card-bd grid grid-cols-1 md:grid-cols-2 gap-5">
-          <label class="block">
-            <span class="lbl">Fecha de ingreso <span class="req">*</span></span>
-            <input type="date" name="fecha_ingreso" id="fecha_ingreso" class="inp" required>
-          </label>
-          <label class="block">
-            <span class="lbl">Trabajador/a social asignado</span>
-            <input name="ts_asignado" class="inp" placeholder="Nombre y apellido">
-          </label>
-          <label class="block">
-            <span class="lbl">Programa</span>
-            <select name="programa" class="inp">
-              <option value="">—</option><option>Adulto Mayor</option><option>Cuidados Domiciliarios</option><option>Salud Mental</option>
-            </select>
-          </label>
-          <label class="block">
-            <span class="lbl">Prioridad</span>
-            <select name="prioridad" id="prioridad" class="inp">
-              <option>Normal</option><option>Alta</option><option>Crítica</option>
-            </select>
-          </label>
-          <label class="block md:col-span-2">
-            <span class="lbl">Derivación / Observaciones adm.</span>
-            <textarea name="derivacion_obs" rows="3" class="inp"></textarea>
-          </label>
-          <label class="inline-flex items-center gap-2 md:col-span-2">
-            <input type="checkbox" name="consentimiento" id="consentimiento" class="chk">
-            <span class="text-sm">Consentimiento informado firmado</span>
-            <button type="button" id="btnConsent" class="text-xs underline decoration-dotted">ver texto</button>
-          </label>
-        </div>
-      </section>
-
-      <!-- STEP 6: Situación socioeconómica -->
-      <section data-step-panel="6" class="card hidden">
-        <div class="card-hd"><h2 class="card-tt">Situación socioeconómica</h2></div>
-        <div class="card-bd grid grid-cols-1 md:grid-cols-2 gap-5">
-          <label class="block">
-            <span class="lbl">Ingresos mensuales aprox. (CLP)</span>
-            <input type="number" name="ingresos" min="0" step="1000" class="inp" placeholder="0">
-          </label>
-          <label class="block">
-            <span class="lbl">Personas a cargo</span>
-            <input type="number" name="personas_cargo" min="0" class="inp" placeholder="0">
-          </label>
-          <label class="block">
-            <span class="lbl">Tipo de vivienda</span>
-            <select name="tipo_vivienda" class="inp">
-              <option value="">—</option><option>Propia</option><option>Arriendo</option><option>Familiar</option><option>Otra</option>
-            </select>
-          </label>
-          <label class="block">
-            <span class="lbl">Previsión complementaria</span>
-            <input name="prevision_comp" class="inp" placeholder="Ej: Seguro privado, caja, etc.">
-          </label>
-          <label class="block md:col-span-2">
-            <span class="lbl">Observaciones</span>
-            <textarea name="socio_obs" rows="3" class="inp"></textarea>
-          </label>
-        </div>
-      </section>
-
-      <!-- STEP 7: Documentos -->
-      <section data-step-panel="7" class="card hidden">
-        <div class="card-hd"><h2 class="card-tt">Documentos adjuntos</h2></div>
-        <div class="card-bd grid gap-5">
-          <div class="grid md:grid-cols-2 gap-4">
-            <label class="block">
-              <span class="lbl">Documento identidad (frente/reverso)</span>
-              <input type="file" name="doc_dni[]" accept=".jpg,.jpeg,.png,.webp,.pdf" multiple class="inp">
-              <small class="hint">Puedes seleccionar varios archivos.</small>
-            </label>
-            <label class="block">
-              <span class="lbl">Ficha médica u otros</span>
-              <input type="file" name="doc_medicos[]" accept=".jpg,.jpeg,.png,.webp,.pdf" multiple class="inp">
-            </label>
-          </div>
-          <div id="docsInfo" class="text-xs text-slate-500">Sin archivos.</div>
-          <div id="docsPreview" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
-        </div>
-      </section>
-
-      <!-- Acciones -->
-      <div class="flex items-center gap-3">
-        <button id="btnSubmit" class="btn-primary flex items-center gap-2">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
-          Guardar
-        </button>
-        <button id="btnSubmitNew" name="_next" value="new" class="btn-ghost">Guardar y nuevo</button>
-        <a href="/pacientes" class="btn-secondary">Cancelar</a>
+  <form method="post" enctype="multipart/form-data" id="frmPaciente" class="grid gap-6">
+    <!-- SECCIÓN: Datos personales -->
+    <section class="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-800">
+      <div class="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 sticky top-0 rounded-t-2xl bg-white/80 dark:bg-slate-900/60 backdrop-blur">
+        <h2 class="text-lg font-medium">Datos personales</h2>
       </div>
+
+      <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Nombres -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Nombres <span class="text-rose-600">*</span></span>
+          <input name="nombres" required autocomplete="given-name" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <!-- Apellidos -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Apellidos <span class="text-rose-600">*</span></span>
+          <input name="apellidos" required autocomplete="family-name" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <!-- RUT -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">RUT <span class="text-rose-600">*</span></span>
+          <input name="rut" id="rut" inputmode="text" placeholder="12.345.678-9" required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          <small id="rutHelp" class="text-xs text-slate-500">Se valida y formatea automáticamente.</small>
+        </label>
+
+        <!-- Sexo -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Sexo</span>
+          <select name="sexo" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </label>
+
+        <!-- Fecha nacimiento -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Fecha de nacimiento <span class="text-rose-600">*</span></span>
+          <input type="date" name="fecha_nacimiento" required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <!-- Teléfono -->
+        <label class="block group">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Teléfono</span>
+          <input name="telefono" id="telefono" autocomplete="tel-national" placeholder="+56 9 1234 5678" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <!-- Email -->
+        <label class="block group md:col-span-2">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Email</span>
+          <input type="email" name="email" autocomplete="email" placeholder="correo@dominio.cl" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: Domicilio -->
+    <section class="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-800">
+      <div class="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 sticky top-0 rounded-t-2xl bg-white/80 dark:bg-slate-900/60 backdrop-blur">
+        <h2 class="text-lg font-medium">Domicilio</h2>
+      </div>
+      <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <label class="block group md:col-span-2">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Dirección <span class="text-rose-600">*</span></span>
+          <input name="direccion" required autocomplete="street-address" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <label class="block group md:col-span-2">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Comuna (Región del Biobío) <span class="text-rose-600">*</span></span>
+          <div class="relative">
+            <input id="comunaSearch" placeholder="Buscar comuna..." class="mt-1 w-full px-3 py-2 pr-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            <svg class="w-5 h-5 absolute right-3 top-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.3-4.3M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
+          </div>
+          <select name="comuna_id" id="comunaSelect" required class="mt-2 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="">Seleccione…</option>
+            <!-- Concepción -->
+            <option>Concepción</option><option>Talcahuano</option><option>Hualpén</option><option>San Pedro de la Paz</option><option>Chiguayante</option><option>Penco</option><option>Tomé</option><option>Hualqui</option><option>Santa Juana</option><option>Coronel</option><option>Lota</option>
+            <!-- Provincia Biobío -->
+            <option>Los Ángeles</option><option>Nacimiento</option><option>Laja</option><option>San Rosendo</option><option>Santa Bárbara</option><option>Quilaco</option><option>Quilleco</option><option>Mulchén</option><option>Negrete</option><option>Tucapel</option><option>Antuco</option><option>Cabrero</option><option>Yumbel</option><option>Alto Biobío</option>
+            <!-- Arauco -->
+            <option>Curanilahue</option><option>Arauco</option><option>Lebu</option><option>Los Álamos</option><option>Cañete</option><option>Contulmo</option><option>Tirúa</option>
+          </select>
+          <small class="text-xs text-slate-500">Escribe para filtrar, luego selecciona.</small>
+        </label>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: Salud y red de apoyo -->
+    <section class="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-800">
+      <div class="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 sticky top-0 rounded-t-2xl bg-white/80 dark:bg-slate-900/60 backdrop-blur">
+        <h2 class="text-lg font-medium">Salud y red de apoyo</h2>
+      </div>
+
+      <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="grid grid-cols-2 gap-4 md:col-span-2">
+          <!-- Previsión -->
+          <label class="block">
+            <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Previsión</span>
+            <select name="prevision_salud" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="">--</option>
+              <option>Fonasa</option>
+              <option>Isapre</option>
+              <option>Ninguna</option>
+            </select>
+          </label>
+
+          <!-- Movilidad -->
+          <label class="block">
+            <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Movilidad</span>
+            <select name="movilidad" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="">--</option>
+              <option>Autónomo</option>
+              <option>Asistido</option>
+              <option>Postrado</option>
+            </select>
+          </label>
+
+          <!-- Dependencia -->
+          <label class="block">
+            <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Dependencia</span>
+            <select name="dependencia" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="">--</option>
+              <option>Leve</option>
+              <option>Moderada</option>
+              <option>Severa</option>
+            </select>
+          </label>
+
+          <!-- Vive solo -->
+          <label class="inline-flex items-center gap-2 mt-6">
+            <input type="checkbox" name="vive_solo" class="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500" />
+            <span class="text-sm text-slate-700 dark:text-slate-200">Vive solo</span>
+          </label>
+        </div>
+
+        <!-- Cuidador -->
+        <label class="block">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Cuidador principal</span>
+          <input name="cuidador_principal" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <label class="block">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Parentesco cuidador</span>
+          <input name="cuidador_parentesco" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </label>
+
+        <!-- Red de apoyo -->
+        <label class="block md:col-span-2">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Red de apoyo</span>
+          <textarea name="red_apoyo" maxlength="500" data-counter="#cntApoyo" rows="3" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          <small id="cntApoyo" class="text-xs text-slate-500">0 / 500</small>
+        </label>
+
+        <!-- Puntaje / Activo -->
+        <div class="grid grid-cols-2 gap-4 md:col-span-2">
+          <label class="block">
+            <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Puntaje vulnerabilidad (0–100)</span>
+            <input type="number" name="puntaje_vulnerabilidad" min="0" max="100" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </label>
+          <label class="inline-flex items-center gap-2 mt-7">
+            <input type="checkbox" name="activo" checked class="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500" />
+            <span class="text-sm text-slate-700 dark:text-slate-200">Activo</span>
+          </label>
+        </div>
+
+        <!-- Observaciones -->
+        <label class="block md:col-span-2">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-200">Observaciones</span>
+          <textarea name="observaciones" maxlength="1000" data-counter="#cntObs" rows="3" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          <small id="cntObs" class="text-xs text-slate-500">0 / 1000</small>
+        </label>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: Enfermedades + Imagen -->
+    <section class="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-800">
+      <div class="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 sticky top-0 rounded-t-2xl bg-white/80 dark:bg-slate-900/60 backdrop-blur">
+        <h2 class="text-lg font-medium">Enfermedades y fotografía</h2>
+      </div>
+
+      <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Enfermedades -->
+        <div>
+          <label class="block font-medium mb-2">Enfermedades (doble clic para agregar)</label>
+
+          <div class="flex gap-2 mb-2">
+            <input id="enfSearch" placeholder="Buscar…" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"/>
+            <button type="button" id="btnClearSearch" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Limpiar</button>
+          </div>
+
+          <div id="enfCatalogo" class="border rounded-xl h-64 overflow-auto p-2 space-y-1">
+            <ul id="enfList" class="space-y-1">
+              {% if enfermedades and enfermedades|length > 0 %}
+                {% for e in enfermedades %}
+                  <li>
+                    <button type="button" class="enf-item w-full text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-id="{{ e.id }}" data-name="{{ e.nombre }}">{{ e.nombre }}</button>
+                  </li>
+                {% endfor %}
+              {% else %}
+                {% set enf_fijas = [
+                  'Hipertensión','Diabetes','Artrosis','Demencia/Alzheimer','Parkinson','EPOC','Insuficiencia cardíaca','Depresión','Osteoporosis','Insuficiencia renal crónica','Secuela de ACV','Cáncer','Hiperlipidemia','Hipotiroidismo','Incontinencia','Artritis reumatoide','Deterioro cognitivo leve','Desnutrición','Obesidad','Úlcera por presión'
+                ] %}
+                {% for n in enf_fijas %}
+                  <li><button type="button" class="enf-item w-full text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-id="" data-name="{{ n }}">{{ n }}</button></li>
+                {% endfor %}
+              {% endif %}
+            </ul>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">Doble clic para añadir. Click en la “×” para quitar.</p>
+
+          <!-- Agregar manual -->
+          <div class="mt-3">
+            <label class="block font-medium mb-1">Agregar “otra” manualmente</label>
+            <div class="flex gap-2">
+              <input id="otra_enf_input" class="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Escribe y presiona Agregar">
+              <button type="button" id="btn_add_otra" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Agregar</button>
+            </div>
+          </div>
+
+          <!-- Chips seleccionadas -->
+          <div class="mt-3">
+            <label class="block font-medium mb-1">Seleccionadas</label>
+            <div id="enf_seleccionadas" class="flex flex-wrap gap-2"></div>
+            <p class="text-xs text-slate-500 mt-1">
+              Se envían como <code>enfermedades_ids[]</code> (existentes) y <code>enfermedades_otras[]</code> (nuevas).
+            </p>
+          </div>
+        </div>
+
+        <!-- Imagen -->
+        <div>
+          <label class="block font-medium mb-2">Imagen del paciente</label>
+          <input type="file" name="imagen" id="imagen" accept=".jpg,.jpeg,.png,.webp" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <p class="text-xs text-slate-500 mt-1">Formatos: JPG, PNG o WEBP. Máx 5MB.</p>
+
+          <div id="previewWrap" class="mt-3 hidden">
+            <img id="previewImg" class="w-48 h-48 object-cover rounded-xl ring-1 ring-slate-200 dark:ring-slate-800" alt="Previsualización">
+            <div class="mt-2">
+              <button type="button" id="btnClearImg" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Quitar imagen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Acciones -->
+    <div class="flex items-center gap-3">
+      <button id="btnSubmit" class="inline-flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        Guardar
+      </button>
+      <a href="/pacientes" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Cancelar</a>
     </div>
-
-    <!-- PREVIEW (col 3) -->
-    <aside class="hidden md:block">
-      <div class="sticky top-24">
-        <div class="rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 bg-white/70 dark:bg-slate-900/60 p-5 shadow-sm">
-          <h3 class="text-base font-semibold mb-3">Previsualización</h3>
-          <div class="space-y-2 text-sm">
-            <div><span class="text-slate-500">Nombre:</span> <span id="pv_nombre">—</span></div>
-            <div><span class="text-slate-500">RUT:</span> <span id="pv_rut">—</span></div>
-            <div><span class="text-slate-500">Edad:</span> <span id="pv_edad">—</span></div>
-            <div><span class="text-slate-500">Comuna:</span> <span id="pv_comuna">—</span></div>
-            <div><span class="text-slate-500">Teléfono:</span> <span id="pv_tel">—</span></div>
-            <div><span class="text-slate-500">Previsión:</span> <span id="pv_prev">—</span></div>
-            <div><span class="text-slate-500">Dependencia:</span> <span id="pv_dep">—</span></div>
-            <div><span class="text-slate-500">Enfermedades:</span>
-              <ul id="pv_enfs" class="list-disc pl-5 mt-1 space-y-0.5"></ul>
-            </div>
-          </div>
-          <div class="mt-4">
-            <img id="pv_img" class="w-full aspect-[4/3] object-cover rounded-xl ring-1 ring-slate-200 dark:ring-slate-800" alt="">
-          </div>
-        </div>
-      </div>
-    </aside>
   </form>
 </div>
 
-<!-- CONSENTIMIENTO MODAL -->
-<dialog id="modalConsent" class="rounded-2xl p-0 w-[min(720px,95vw)]">
-  <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800">
-    <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-      <h4 class="font-semibold">Consentimiento informado</h4>
-      <form method="dialog"><button class="text-sm px-3 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Cerrar</button></form>
-    </div>
-    <div class="p-4 text-sm leading-6">
-      Declaro que entrego mis datos de manera voluntaria para fines de apoyo social y salud de la Fundación...
-    </div>
-    <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-      <button id="consentCheck" class="btn-primary">Marcar como leído</button>
-      <form method="dialog"><button class="btn-secondary">Listo</button></form>
-    </div>
-  </div>
-</dialog>
-
-<style>
-  .card{ @apply bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-800; }
-  .card-hd{ @apply p-4 md:p-6 border-b border-slate-100 dark:border-slate-800; }
-  .card-tt{ @apply text-lg font-medium; }
-  .card-bd{ @apply p-4 md:p-6; }
-  .lbl{ @apply block text-sm font-medium text-slate-700 dark:text-slate-200; }
-  .req{ @apply text-rose-600; }
-  .inp{ @apply mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500; }
-  .chk{ @apply rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500; }
-  .btn-primary{ @apply px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50; }
-  .btn-secondary{ @apply px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800; }
-  .btn-ghost{ @apply px-4 py-2 rounded-xl border border-transparent hover:bg-slate-50 dark:hover:bg-slate-800; }
-  .hint{ @apply text-xs text-slate-500; }
-  .ico-search{ @apply w-5 h-5 absolute right-3 top-3.5 text-slate-400 fill-none stroke-current; stroke-width:2; }
-</style>
-
 <script>
-/* ===== Helpers ===== */
-const $ = (s, c=document)=>c.querySelector(s);
-const $$ = (s, c=document)=>Array.from(c.querySelectorAll(s));
-const debounce = (fn, ms=250)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
-const DRAFT_KEY = 'paciente_draft_v2';
+/* === Utils === */
+const $ = (sel, ctx=document) => ctx.querySelector(sel);
+const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
 
-/* ===== Stepper ===== */
-const stepBtns = $$('.step-btn');
-const panels = $$('[data-step-panel]');
-function showStep(n){
-  panels.forEach(p=>p.classList.toggle('hidden', p.dataset.stepPanel !== String(n)));
-  stepBtns.forEach(b=>{
-    const active = b.dataset.step === String(n);
-    b.classList.toggle('bg-emerald-600', active);
-    b.classList.toggle('text-white', active);
-  });
-  window.scrollTo({top:0, behavior:'instant'});
-}
-stepBtns.forEach(b=> b.addEventListener('click', ()=> showStep(b.dataset.step)));
-showStep(1);
+function debounce(fn, ms=250){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
 
-/* ===== Text counters ===== */
+/* === Contadores de texto === */
 $$('textarea[data-counter]').forEach(el=>{
   const out = $(el.getAttribute('data-counter'));
   const max = parseInt(el.getAttribute('maxlength')||'0',10);
-  const upd = ()=> out.textContent = `${el.value.length} / ${max}`;
+  const upd = ()=> { out.textContent = `${el.value.length} / ${max}`; };
   el.addEventListener('input', upd); upd();
 });
 
-/* ===== RUT format + validate + duplicate check ===== */
-const inRut = $('#rut'); const rutHelp = $('#rutHelp'); const rutState = $('#rutState');
+/* === RUT: formato + validación === */
+const inRut = $('#rut');
+const rutHelp = $('#rutHelp');
 
 function cleanRut(v){ return (v||'').replace(/\./g,'').replace(/\s/g,'').toUpperCase(); }
 function formatRut(v){
-  v = cleanRut(v); if(!v) return '';
+  v = cleanRut(v);
+  if(!v) return '';
   let [cuerpo, dv] = v.split('-');
   if(!dv && v.length>1){ dv = v.slice(-1); cuerpo = v.slice(0,-1); }
-  const rev = cuerpo.split('').reverse(), chunks = [];
-  for (let i=0;i<rev.length;i++){ chunks.push(rev[i]); if ((i+1)%3===0 && (i+1)!==rev.length) chunks.push('.'); }
+  const rev = cuerpo.split('').reverse();
+  const chunks = [];
+  for (let i=0;i<rev.length;i++){
+    chunks.push(rev[i]);
+    if ((i+1)%3===0 && (i+1)!==rev.length) chunks.push('.');
+  }
   return chunks.reverse().join('') + (dv ? '-'+dv : '');
 }
 function validaRut(v){
-  v = cleanRut(v); if(!v.includes('-')) return false;
-  const [cuerpo, dv] = v.split('-'); if(!/^\d+$/.test(cuerpo)) return false;
-  const fac=[2,3,4,5,6,7]; let suma=0,i=0;
-  for(const n of cuerpo.split('').reverse()){ suma+=parseInt(n,10)*fac[i]; i=(i+1)%fac.length; }
-  const resto = 11-(suma%11); const dvCalc = (resto===11)?'0':(resto===10)?'K':String(resto);
+  v = cleanRut(v);
+  if(!v.includes('-')) return false;
+  const [cuerpo, dv] = v.split('-');
+  if(!/^\d+$/.test(cuerpo)) return false;
+  const fac = [2,3,4,5,6,7];
+  let suma=0,i=0;
+  for(const n of cuerpo.split('').reverse()){
+    suma += parseInt(n,10)*fac[i];
+    i = (i+1)%fac.length;
+  }
+  const resto = 11-(suma%11);
+  const dvCalc = (resto===11) ? '0' : (resto===10) ? 'K' : String(resto);
   return dvCalc === dv;
 }
-inRut.addEventListener('input', ()=>{
+inRut.addEventListener('input', e=>{
   const pos = inRut.selectionStart;
-  inRut.value = formatRut(inRut.value);
+  const val = formatRut(inRut.value);
+  inRut.value = val;
   inRut.setSelectionRange(pos,pos);
 });
-async function checkRutDuplicado(rutFmt){
-  const ok = validaRut(rutFmt);
-  rutHelp.textContent = ok ? 'RUT válido.' : 'RUT inválido.'; 
-  rutHelp.className = 'hint ' + (ok ? 'text-emerald-600' : 'text-rose-600');
-  if(!ok){ rutState.textContent = '—'; return; }
-  rutState.textContent = 'Consultando…';
-  try{
-    // Ajusta este endpoint a tu backend:
-    const res = await fetch(`/pacientes/check-rut?rut=${encodeURIComponent(rutFmt)}`);
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json(); // {exists:boolean, nombre?:string, id?:number}
-    if(data.exists){
-      rutState.innerHTML = `⚠️ Ya existe: <a class="underline" href="/pacientes/${data.id}" target="_blank">${data.nombre||'ver ficha'}</a>`;
-      rutState.className = 'text-sm mt-2 text-rose-600';
-    }else{
-      rutState.textContent = 'Disponible';
-      rutState.className = 'text-sm mt-2 text-emerald-600';
-    }
-  }catch(e){
-    rutState.textContent = 'No se pudo verificar.';
-    rutState.className = 'text-sm mt-2 text-slate-500';
-  }
-}
-inRut.addEventListener('blur', ()=> checkRutDuplicado(inRut.value));
+inRut.addEventListener('blur', ()=>{
+  const ok = validaRut(inRut.value);
+  rutHelp.textContent = ok ? 'RUT válido.' : 'RUT inválido.';
+  rutHelp.className = 'text-xs ' + (ok ? 'text-emerald-600' : 'text-rose-600');
+});
 
-/* ===== Teléfonos (máscaras simples) ===== */
-function maskCL(m){ 
-  return (inp)=>{
-    let v = inp.value.replace(/\D/g,''); if(v.startsWith('56')) v=v.slice(2); if(v.startsWith('0')) v=v.slice(1);
-    if(!v.startsWith('9')) v='9'+v; v = v.slice(0,9);
-    const f = v.length<=1 ? `+56 ${v}` : v.length<=5 ? `+56 ${v.slice(0,1)} ${v.slice(1)}` : `+56 ${v.slice(0,1)} ${v.slice(1,5)} ${v.slice(5)}`;
-    inp.value = f.trim();
-  };
-}
-$('#telefono')?.addEventListener('input', ()=> maskCL()($('#telefono')));
-$('#emerg_telefono')?.addEventListener('input', ()=> maskCL()($('#emerg_telefono')));
+/* === Teléfono: máscara simple +56 9 XXXX XXXX === */
+const inTel = $('#telefono');
+inTel?.addEventListener('input', ()=>{
+  let v = inTel.value.replace(/\D/g,'');
+  if (v.startsWith('56')) v = v.slice(2);
+  if (v.startsWith('0')) v = v.slice(1);
+  if (!v.startsWith('9')) v = '9'+v; // celular
+  v = v.slice(0,9);
+  const f = v.length<=1 ? `+56 ${v}` :
+            v.length<=5 ? `+56 ${v.slice(0,1)} ${v.slice(1)}` :
+            `+56 ${v.slice(0,1)} ${v.slice(1,5)} ${v.slice(5)}`;
+  inTel.value = f.trim();
+});
 
-/* ===== Comuna search ===== */
-const comunaSearch = $('#comunaSearch'); const comunaSelect = $('#comunaSelect');
+/* === Comuna: filtro de búsqueda === */
+const comunaSearch = $('#comunaSearch');
+const comunaSelect = $('#comunaSelect');
 const filterComunas = debounce(()=>{
   const q = (comunaSearch.value||'').toLowerCase();
-  let firstVisible=null;
+  let firstVisible = null;
   $$('#comunaSelect option').forEach(opt=>{
-    if(!opt.value) return;
+    if (!opt.value) return; // deja "Seleccione"
     const show = opt.textContent.toLowerCase().includes(q);
-    opt.hidden = !show; if(show && !firstVisible) firstVisible = opt;
+    opt.hidden = !show;
+    if (show && !firstVisible) firstVisible = opt;
   });
+  // no autoseleccionamos para no confundir
 }, 100);
 comunaSearch.addEventListener('input', filterComunas);
-$('#btnClearSearch')?.addEventListener('click', ()=>{ comunaSearch.value=''; filterComunas(); });
+$('#btnClearSearch')?.addEventListener('click', ()=>{
+  comunaSearch.value = '';
+  filterComunas();
+});
 
-/* ===== Enfermedades (chips, buscar, doble clic, teclado) ===== */
-const enfSearch = $('#enfSearch'), enfList = $('#enfList'), contChips = $('#enf_seleccionadas'), pvEnfs = $('#pv_enfs');
-function syncPreviewEnfs(){
-  pvEnfs.innerHTML = '';
-  $$('.chip .chip-label', contChips).forEach(el=>{
-    const li = document.createElement('li'); li.textContent = el.textContent; pvEnfs.appendChild(li);
-  });
-}
-function addChip({id, name}){
-  const key = name.trim().toLowerCase();
-  if(!key) return;
-  if ($(`.chip[data-key="${CSS.escape(key)}"]`, contChips)) return;
+/* === Enfermedades: búsqueda + doble clic → chips === */
+const enfSearch = $('#enfSearch');
+const enfList = $('#enfList');
+const contChips = $('#enf_seleccionadas');
+
+function addChip({id, name}) {
+  // evitar duplicados por nombre (case-insensitive)
+  const exists = $(`.chip[data-name="${CSS.escape(name.toLowerCase())}"]`, contChips);
+  if (exists) return;
   const chip = document.createElement('span');
-  chip.className='chip inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200';
-  chip.dataset.key = key;
-  chip.innerHTML = `<span class="chip-label text-sm">${name}</span>
-    <button type="button" class="chip-rem text-emerald-600 hover:text-emerald-800 dark:hover:text-emerald-100" aria-label="Quitar">×</button>`;
+  chip.className = 'chip inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200';
+  chip.dataset.name = name.toLowerCase();
+  chip.innerHTML = `<span class="text-sm">${name}</span>
+    <button type="button" class="remove text-emerald-600 hover:text-emerald-800 dark:hover:text-emerald-100" aria-label="Quitar">×</button>`;
   const hidden = document.createElement('input');
-  hidden.type='hidden'; hidden.value = id ? id : name; hidden.name = id ? 'enfermedades_ids[]' : 'enfermedades_otras[]';
+  hidden.type = 'hidden';
+  hidden.value = id ? id : name;
+  hidden.name = id ? 'enfermedades_ids[]' : 'enfermedades_otras[]';
   chip.appendChild(hidden);
   contChips.appendChild(chip);
-  chip.querySelector('.chip-rem').addEventListener('click', ()=>{ chip.remove(); syncPreviewEnfs(); });
-  chip.addEventListener('keydown', (ev)=>{ if(ev.key==='Delete' || ev.key==='Backspace'){ ev.preventDefault(); chip.querySelector('.chip-rem').click(); } });
-  syncPreviewEnfs();
+
+  chip.querySelector('.remove').addEventListener('click', ()=> chip.remove());
 }
+
 enfList.addEventListener('dblclick', (e)=>{
-  const btn = e.target.closest('.enf-item'); if(!btn) return;
+  const btn = e.target.closest('.enf-item');
+  if (!btn) return;
   addChip({id: btn.dataset.id || '', name: btn.dataset.name});
 });
+
 enfSearch.addEventListener('input', debounce(()=>{
   const q = (enfSearch.value||'').toLowerCase();
   $$('.enf-item', enfList).forEach(b=>{
@@ -560,175 +394,62 @@ enfSearch.addEventListener('input', debounce(()=>{
     b.parentElement.hidden = !show;
   });
 }, 100));
+
+/* Agregar “otra” manual */
 const otraInput = $('#otra_enf_input');
 $('#btn_add_otra').addEventListener('click', ()=>{
-  const v = (otraInput.value||'').trim(); if(!v) return; addChip({id:'', name:v}); otraInput.value='';
+  const val = (otraInput.value||'').trim();
+  if (!val) return;
+  addChip({id:'', name:val});
+  otraInput.value = '';
 });
-otraInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); $('#btn_add_otra').click(); }});
 
-/* ===== Imagen preview ===== */
-const inImg = $('#imagen'), wrapPrev = $('#previewWrap'), imgPrev = $('#previewImg'), pvImg = $('#pv_img');
+/* === Imagen: preview + limpiar === */
+const inImg = $('#imagen');
+const wrapPrev = $('#previewWrap');
+const imgPrev = $('#previewImg');
+const btnClearImg = $('#btnClearImg');
+
 inImg.addEventListener('change', ()=>{
   const f = inImg.files?.[0];
-  if(!f){ wrapPrev.classList.add('hidden'); pvImg.src=''; return; }
-  if(f.size > 5*1024*1024){ alert('La imagen supera los 5MB.'); inImg.value=''; wrapPrev.classList.add('hidden'); pvImg.src=''; return; }
-  const url = URL.createObjectURL(f); imgPrev.src = url; pvImg.src = url; wrapPrev.classList.remove('hidden');
-});
-$('#btnClearImg').addEventListener('click', ()=>{ inImg.value=''; wrapPrev.classList.add('hidden'); imgPrev.src=''; pvImg.src=''; });
-
-/* ===== Edad y rango etario ===== */
-const fNac = $('#fecha_nacimiento'), edad = $('#edad'), rango = $('#rango_etario'), pvEdad = $('#pv_edad');
-function calcEdad(){
-  const v = fNac.value; if(!v){ edad.value=''; rango.value=''; pvEdad.textContent='—'; return; }
-  const dob = new Date(v+'T00:00:00'); const today = new Date();
-  let years = today.getFullYear()-dob.getFullYear();
-  const m = today.getMonth()-dob.getMonth();
-  if(m<0 || (m===0 && today.getDate()<dob.getDate())) years--;
-  edad.value = isFinite(years) ? years : '';
-  pvEdad.textContent = edad.value || '—';
-  let r=''; if(years<0) r=''; else if(years<18) r='Menor'; else if(years<60) r='Adulto'; else r='Adulto mayor';
-  rango.value = r;
-}
-fNac.addEventListener('change', calcEdad);
-
-/* ===== Preview simple (nombre, rut, comuna, tel, prevision, dep) ===== */
-function syncPreview(){
-  $('#pv_nombre').textContent = `${document.querySelector('[name="nombres"]').value||''} ${document.querySelector('[name="apellidos"]').value||''}`.trim()||'—';
-  $('#pv_rut').textContent = $('#rut').value || '—';
-  $('#pv_comuna').textContent = $('#comunaSelect').value || '—';
-  $('#pv_tel').textContent = $('#telefono').value || '—';
-  $('#pv_prev').textContent = document.querySelector('[name="prevision_salud"]').value || '—';
-  $('#pv_dep').textContent = document.querySelector('[name="dependencia"]').value || '—';
-}
-document.addEventListener('input', debounce(syncPreview, 150));
-
-/* ===== Progreso ===== */
-const REQS = [
-  '[name="nombres"]','[name="apellidos"]','#rut','#fecha_nacimiento',
-  '[name="direccion"]','#comunaSelect',
-  '[name="emerg_nombre"]','[name="emerg_parentesco"]','[name="emerg_telefono"]',
-  '#fecha_ingreso'
-];
-function updateProgress(){
-  const total = REQS.length;
-  const count = REQS.filter(sel=>{
-    const el = $(sel); if(!el) return false;
-    if(el.type==='select-one') return (el.value||'').trim()!=='';
-    return (el.value||'').trim()!=='';
-  }).length;
-  const pct = Math.round(100*count/total);
-  $('#progressPct').textContent = pct+'%';
-  $('#progressBar').style.width = pct+'%';
-}
-document.addEventListener('input', debounce(updateProgress,120));
-document.addEventListener('change', updateProgress);
-
-/* ===== Autosave (localStorage) ===== */
-const form = $('#frmPaciente');
-function saveDraft(){
-  const fd = new FormData(form); const obj={};
-  fd.forEach((v,k)=>{
-    if(obj[k]){ if(!Array.isArray(obj[k])) obj[k]=[obj[k]]; obj[k].push(v); }
-    else obj[k]=v;
-  });
-  localStorage.setItem(DRAFT_KEY, JSON.stringify(obj));
-}
-function loadDraft(){
-  const raw = localStorage.getItem(DRAFT_KEY); if(!raw) return;
-  try{
-    const obj = JSON.parse(raw);
-    for(const [k,v] of Object.entries(obj)){
-      const els = $$(`[name="${CSS.escape(k)}"]`, form);
-      if(!els.length) continue;
-      if(Array.isArray(v)){
-        // Para arrays (p.ej. enfermedades)
-        // No rehidratamos archivos; sí inputs hidden (chips)
-        if(k.startsWith('enfermedades_')){
-          // recrear chips
-          // Para simplificar, no distingas id/nombre: mostramos texto
-          v.forEach(txt=> addChip({id:'', name:String(txt)}));
-        }else{
-          els.forEach((el,i)=>{ if(els[i] && typeof v[i]!=='undefined') els[i].value = v[i]; });
-        }
-      }else{
-        const el = els[0];
-        if(el?.type==='checkbox'){ el.checked = v===true || v==='on' || v==='true' || v===1 || v==='1'; }
-        else if(el && el.type!=='file'){ el.value = v; }
-      }
-    }
-    // disparar efectos
-    calcEdad(); syncPreview(); updateProgress();
-  }catch(e){}
-}
-function clearDraft(){ localStorage.removeItem(DRAFT_KEY); }
-form.addEventListener('input', debounce(saveDraft, 400));
-window.addEventListener('DOMContentLoaded', loadDraft);
-$('#btnClearDraft').addEventListener('click', ()=>{ clearDraft(); location.reload(); });
-
-/* ===== Validaciones finales ===== */
-const btnSubmit = $('#btnSubmit'), btnSubmitNew = $('#btnSubmitNew');
-function formOk(){
-  const all = REQS.every(sel=>{
-    const el = $(sel);
-    if(!el) return false;
-    if(el.type==='select-one') return (el.value||'').trim()!=='';
-    return (el.value||'').trim()!=='';
-  });
-  const rutValid = validaRut(inRut.value);
-  return all && rutValid;
-}
-function toggleSubmit(){
-  const ok = formOk();
-  btnSubmit.disabled = !ok; btnSubmitNew.disabled = !ok;
-}
-document.addEventListener('input', debounce(toggleSubmit, 120));
-document.addEventListener('change', toggleSubmit);
-window.addEventListener('DOMContentLoaded', ()=>{ calcEdad(); syncPreview(); updateProgress(); toggleSubmit(); });
-
-form.addEventListener('submit', (e)=>{
-  if(!formOk()){
-    e.preventDefault();
-    alert('Revisa los campos obligatorios y el RUT.');
+  if (!f) { wrapPrev.classList.add('hidden'); return; }
+  if (f.size > 5*1024*1024) {
+    alert('La imagen supera los 5MB.');
+    inImg.value = '';
+    wrapPrev.classList.add('hidden');
     return;
   }
-  // Evita doble envío
-  btnSubmit.disabled = btnSubmitNew.disabled = true;
-  btnSubmit.textContent = 'Guardando…';
-  clearDraft();
+  const url = URL.createObjectURL(f);
+  imgPrev.src = url;
+  wrapPrev.classList.remove('hidden');
 });
 
-/* ===== Consentimiento modal ===== */
-const dlg = $('#modalConsent');
-$('#btnConsent').addEventListener('click', ()=> dlg.showModal());
-$('#consentCheck').addEventListener('click', ()=>{
-  $('#consentimiento').checked = true;
-  dlg.close();
+btnClearImg.addEventListener('click', ()=>{
+  inImg.value = '';
+  wrapPrev.classList.add('hidden');
+  imgPrev.src = '';
 });
 
-/* ===== Docs preview + peso total ===== */
-const docsInputs = $$('input[type="file"][name^="doc_"]');
-const docsInfo = $('#docsInfo'); const docsPrev = $('#docsPreview');
-function human(n){ const u=['B','KB','MB','GB']; let i=0; while(n>=1024 && i<u.length-1){ n/=1024; i++; } return `${n.toFixed(1)} ${u[i]}`; }
-function isImg(f){ return /^image\//.test(f.type); }
-function updateDocs(){
-  docsPrev.innerHTML=''; let total=0, count=0;
-  docsInputs.forEach(inp=>{
-    const files = inp.files || []; for(const f of files){ total+=f.size; count++;
-      if(isImg(f)){ const url = URL.createObjectURL(f);
-        const img = document.createElement('img'); img.src=url; img.className='w-full aspect-square object-cover rounded-xl ring-1 ring-slate-200 dark:ring-slate-800';
-        docsPrev.appendChild(img);
-      }
-    }
-  });
-  docsInfo.textContent = count ? `${count} archivo(s) — ${human(total)}` : 'Sin archivos.';
+/* === Validación de envío === */
+const form = $('#frmPaciente');
+const btnSubmit = $('#btnSubmit');
+
+function formOk(){
+  const reqs = $$('[name="nombres"],[name="apellidos"],[name="rut"],[name="fecha_nacimiento"],[name="direccion"],#comunaSelect');
+  const allFilled = reqs.every(i=> (i.type==='select-one') ? i.value.trim()!=='' : (i.value||'').trim()!=='');
+  const rutValid = validaRut(inRut.value);
+  return allFilled && rutValid;
 }
-docsInputs.forEach(inp=> inp.addEventListener('change', updateDocs));
+function toggleSubmit(){ btnSubmit.disabled = !formOk(); }
+form.addEventListener('input', debounce(toggleSubmit, 120));
+form.addEventListener('change', toggleSubmit);
+document.addEventListener('DOMContentLoaded', toggleSubmit);
 
-/* ===== Preview: nombre/campos ===== */
-['nombres','apellidos','prevision_salud','dependencia','telefono'].forEach(n=>{
-  const el = document.querySelector(`[name="${n}"]`);
-  el?.addEventListener('input', debounce(syncPreview, 120));
+form.addEventListener('submit', (e)=>{
+  if (!formOk()){
+    e.preventDefault();
+    alert('Revisa los campos obligatorios y el RUT.');
+  }
 });
-$('#comunaSelect')?.addEventListener('change', syncPreview);
 </script>
 {% endblock %}
