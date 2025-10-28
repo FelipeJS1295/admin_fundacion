@@ -1,3 +1,8 @@
+{# === Guardas globales para no reventar si no hay user ni path === #}
+{% set path = (request.url.path if request is defined and request else '') %}
+{% set user_obj = (request.state.user if request is defined and request and request.state is not none and hasattr(request.state, 'user') else None) %}
+{% set rol = (user_obj.rol if user_obj else 'User') %}
+
 <aside id="sidebar"
        class="fixed z-50 inset-y-0 left-0 w-72 translate-x-[-110%] md:translate-x-0 md:static md:z-auto
               bg-slate-900/70 backdrop-blur border-r border-slate-800 transition-transform">
@@ -14,7 +19,7 @@
     <!-- Inicio -->
     <a href="/dashboard"
       class="flex items-center gap-3 px-3 py-2 rounded-lg border
-              {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/dashboard') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}"
+             {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/dashboard') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}"
       {% if path.startswith('/dashboard') %}aria-current="page"{% endif %}>
       <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor">
         <path d="M3 12 12 3l9 9-1.5 1.5L12 5.5 4.5 13.5V21h6v-6h3v6h6v-7.5l1.5 1.5"/>
@@ -22,8 +27,8 @@
       Dashboard
     </a>
 
-    {# ---------- FINANZAS (solo para roles distintos de 'User') ---------- #}
-    {% if user.rol != 'User' %}
+    {# ---------- FINANZAS (oculto para rol 'User') ---------- #}
+    {% if rol != 'User' %}
       {% set open_fin = path.startswith('/entradas') or path.startswith('/salidas') or path.startswith('/transacciones') or path.startswith('/categorias') %}
       <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if open_fin else '' }}>
         <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/60 cursor-pointer select-none">
@@ -44,7 +49,7 @@
 
     {# ---------- INVENTARIO ---------- #}
     {% set open_inv = path.startswith('/inventario') %}
-    <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if request.url.path.startswith('/inventario') else '' }}>
+    <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if open_inv else '' }}>
       <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/60 cursor-pointer select-none">
         <div class="flex items-center gap-2">
           <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7h18v2H3zm0 4h18v10H3zM7 3h10v2H7z"/></svg>
@@ -53,8 +58,8 @@
         <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg>
       </summary>
       <div class="bg-slate-900/40 p-2">
-        <a href="/inventario/items" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if request.url.path.startswith('/inventario/items') else 'hover:bg-slate-800/60 text-slate-300' }}">Items</a>
-        <a href="/inventario/categorias" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if request.url.path.startswith('/inventario/categorias') else 'hover:bg-slate-800/60 text-slate-300' }}">Categorías</a>
+        <a href="/inventario/items" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/items') else 'hover:bg-slate-800/60 text-slate-300' }}">Items</a>
+        <a href="/inventario/categorias" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/categorias') else 'hover:bg-slate-800/60 text-slate-300' }}">Categorías</a>
       </div>
     </details>
 
@@ -76,13 +81,13 @@
       </div>
     </details>
 
-    {# ---------- USUARIOS (solo para roles distintos de 'User') ---------- #}
-    {% if user.rol != 'User' %}
+    {# ---------- USUARIOS (oculto para rol 'User') ---------- #}
+    {% if rol != 'User' %}
       <a href="/usuarios"
          class="flex items-center gap-3 px-3 py-2 rounded-lg border
                 {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/usuarios') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}">
         <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3ZM8 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-2.67 0-8 1.34-8 4v2h10v-2c0-1.86.76-3.41 2-4.5-1.02-.31-2.09-.5-4-.5Zm8 0c-3.67 0-9 1.84-9 4.5V20h18v-2c0-2.66-5.33-4.5-9-4.5Z"/>
+          <path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3ZM8 11a 3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-2.67 0-8 1.34-8 4v2h10v-2c0-1.86.76-3.41 2-4.5-1.02-.31-2.09-.5-4-.5Zm8 0c-3.67 0-9 1.84-9 4.5V20h18v-2c0-2.66-5.33-4.5-9-4.5Z"/>
         </svg>
         Usuarios
       </a>
