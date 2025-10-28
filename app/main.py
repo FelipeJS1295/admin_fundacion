@@ -11,7 +11,6 @@ from app.routers.entradas import router as entradas_router
 from app.routers.salidas import router as salidas_router
 from app.routers.categorias import router as categorias_router
 from app.routers.auth import router as auth_router, seed_admin_user
-from app.routers.usuarios import router as usuarios_router
 from app.routers.inventario_simple import router as inventario_simple_router
 from app.routers.pacientes import router as pacientes_router
 from app.routers.dashboard import router as dashboard_router
