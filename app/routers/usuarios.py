@@ -1,45 +1,34 @@
 # app/routers/usuarios.py
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from app.db import get_db
 from app.models import User
-from app.auth import get_current_user, is_admin, hash_password, verify_password
-
-router = APIRouter(tags=["usuarios"])
+from app.auth import get_current_user, hash_password, verify_password
+from app.auth.roles import require_admin
 from app.core.templates import templates
 
-# --------- Helpers ---------
-def require_admin_or_redirect(user: User | None) -> RedirectResponse | None:
-    if not is_admin(user):
-        return RedirectResponse(url="/?error=Solo%20Admin", status_code=303)
-    return None
+# ---------- RUTAS SOLO ADMIN ----------
+router_admin = APIRouter(
+    prefix="/usuarios",
+    tags=["usuarios"],
+    dependencies=[Depends(require_admin)]  # <- bloquea todo este grupo
+)
 
-# --------- Admin: listado ---------
-@router.get("/usuarios", response_class=HTMLResponse)
-def usuarios_index(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    redir = require_admin_or_redirect(user)
-    if redir: return redir
-
+@router_admin.get("", response_class=HTMLResponse)
+def usuarios_index(request: Request, db: Session = Depends(get_db)):
     users = db.query(User).order_by(User.username).all()
     return templates.TemplateResponse("usuarios/index.html", {"request": request, "users": users})
 
-# --------- Admin: crear ---------
-@router.get("/usuarios/nuevo", response_class=HTMLResponse)
-def usuarios_nuevo(request: Request, user: User = Depends(get_current_user)):
-    redir = require_admin_or_redirect(user)
-    if redir: return redir
-    return templates.TemplateResponse("usuarios/form.html", {
-        "request": request, "modo": "crear", "u": None
-    })
+@router_admin.get("/nuevo", response_class=HTMLResponse)
+def usuarios_nuevo(request: Request):
+    return templates.TemplateResponse("usuarios/form.html", {"request": request, "modo": "crear", "u": None})
 
-@router.post("/usuarios")
+@router_admin.post("")
 def usuarios_crear(
     request: Request,
-    user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     username: str = Form(...),
     role: str = Form("User"),
@@ -47,9 +36,6 @@ def usuarios_crear(
     password: str = Form(...),
     password2: str = Form(...),
 ):
-    redir = require_admin_or_redirect(user)
-    if redir: return redir
-
     if password != password2:
         return RedirectResponse(url="/usuarios/nuevo?error=Las%20claves%20no%20coinciden", status_code=303)
 
@@ -68,32 +54,22 @@ def usuarios_crear(
 
     return RedirectResponse(url="/usuarios?ok=1", status_code=303)
 
-# --------- Admin: editar ---------
-@router.get("/usuarios/{uid}/editar", response_class=HTMLResponse)
-def usuarios_editar_form(uid: int, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    redir = require_admin_or_redirect(user)
-    if redir: return redir
-
+@router_admin.get("/{uid}/editar", response_class=HTMLResponse)
+def usuarios_editar_form(uid: int, request: Request, db: Session = Depends(get_db)):
     u = db.get(User, uid)
     if not u:
         return RedirectResponse(url="/usuarios?error=No%20encontrado", status_code=303)
-    return templates.TemplateResponse("usuarios/form.html", {
-        "request": request, "modo": "editar", "u": u
-    })
+    return templates.TemplateResponse("usuarios/form.html", {"request": request, "modo": "editar", "u": u})
 
-@router.post("/usuarios/{uid}")
+@router_admin.post("/{uid}")
 def usuarios_actualizar(
     uid: int,
     request: Request,
-    user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     username: str = Form(...),
     role: str = Form("User"),
     active: str | None = Form(None),
 ):
-    redir = require_admin_or_redirect(user)
-    if redir: return redir
-
     u = db.get(User, uid)
     if not u:
         return RedirectResponse(url="/usuarios?error=No%20encontrado", status_code=303)
@@ -109,28 +85,15 @@ def usuarios_actualizar(
 
     return RedirectResponse(url="/usuarios?ok=1", status_code=303)
 
-# --------- Admin: resetear contraseña de un usuario ---------
-@router.get("/usuarios/{uid}/password", response_class=HTMLResponse)
-def usuarios_password_form(uid: int, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    redir = require_admin_or_redirect(user)
-    if redir: return redir
+@router_admin.get("/{uid}/password", response_class=HTMLResponse)
+def usuarios_password_form(uid: int, request: Request, db: Session = Depends(get_db)):
     u = db.get(User, uid)
     if not u:
         return RedirectResponse(url="/usuarios?error=No%20encontrado", status_code=303)
     return templates.TemplateResponse("usuarios/password.html", {"request": request, "u": u})
 
-@router.post("/usuarios/{uid}/password")
-def usuarios_password(
-    uid: int,
-    request: Request,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    password: str = Form(...),
-    password2: str = Form(...),
-):
-    redir = require_admin_or_redirect(user)
-    if redir: return redir
-
+@router_admin.post("/{uid}/password")
+def usuarios_password(uid: int, request: Request, db: Session = Depends(get_db), password: str = Form(...), password2: str = Form(...)):
     if password != password2:
         return RedirectResponse(url=f"/usuarios/{uid}/password?error=Claves%20no%20coinciden", status_code=303)
     u = db.get(User, uid)
@@ -140,14 +103,16 @@ def usuarios_password(
     db.commit()
     return RedirectResponse(url="/usuarios?ok=1", status_code=303)
 
-# --------- Cambiar mi contraseña (cualquier usuario logueado) ---------
-@router.get("/mi-password", response_class=HTMLResponse)
+# ---------- RUTAS DE CUENTA (cualquier usuario logueado) ----------
+router_account = APIRouter(tags=["cuenta"])
+
+@router_account.get("/mi-password", response_class=HTMLResponse)
 def mi_password_form(request: Request, user: User = Depends(get_current_user)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
     return templates.TemplateResponse("cuenta/mi_password.html", {"request": request})
 
-@router.post("/mi-password")
+@router_account.post("/mi-password")
 def mi_password(
     request: Request,
     user: User = Depends(get_current_user),
