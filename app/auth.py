@@ -1,5 +1,4 @@
-# app/auth.py
-from fastapi import Request, Depends
+from fastapi import Request, Depends, HTTPException, status
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from app.db import get_db
@@ -21,3 +20,9 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User | 
 
 def is_admin(user: User | None) -> bool:
     return bool(user and user.role == "Admin")
+
+# 🔒 NUEVO: dependencia global para proteger rutas de Admin
+def require_admin(user: User = Depends(get_current_user)):
+    if not user or not is_admin(user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No autorizado")
+    return user

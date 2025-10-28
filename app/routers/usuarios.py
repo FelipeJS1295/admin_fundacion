@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from app.db import get_db
 from app.models import User
 from app.auth import get_current_user, hash_password, verify_password
-from app.auth.roles import require_admin
+from app.auth import get_current_user, hash_password, verify_password, require_admin
 from app.core.templates import templates
 
 # ---------- RUTAS SOLO ADMIN ----------
