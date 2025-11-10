@@ -1,0 +1,38 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+{% set titulo = (scope == 'banco' and 'Banco' or 'Caja chica') ~ ' — ' ~ (tipo|capitalize) %}
+<header class="mb-4 flex items-center justify-between">
+  <h1 class="text-xl font-semibold text-white">{{ titulo }}</h1>
+  <a href="/finanzas/{{ scope }}/{{ tipo }}/nuevo" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm">+ Nuevo</a>
+</header>
+
+<div class="rounded-xl border border-white/10 bg-slate-900/60 p-4">
+  <div class="mb-4 text-slate-300">Total {{ tipo }}: <span class="font-semibold text-white">${{ '%.2f'|format(total) }}</span></div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm text-slate-200">
+      <thead class="text-slate-400">
+        <tr>
+          <th class="px-3 py-2 text-left">Fecha</th>
+          {% if scope == 'banco' %}<th class="px-3 py-2 text-left">Método</th>{% endif %}
+          <th class="px-3 py-2 text-left">Concepto</th>
+          <th class="px-3 py-2 text-left">N° Doc</th>
+          <th class="px-3 py-2 text-right">Monto</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in items %}
+        <tr class="border-t border-white/5">
+          <td class="px-3 py-2">{{ i.fecha }}</td>
+          {% if scope == 'banco' %}<td class="px-3 py-2">{{ i.metodo_pago }}</td>{% endif %}
+          <td class="px-3 py-2">{{ i.concepto }}</td>
+          <td class="px-3 py-2">{{ i.numero_documento or '' }}</td>
+          <td class="px-3 py-2 text-right">${{ '%.2f'|format(i.monto) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="px-3 py-6 text-center text-slate-400">Sin registros</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+{% set titulo = (scope == 'banco' and 'Banco' or 'Caja chica') ~ ' — ' ~ (tipo|capitalize) %}
+<header class="mb-4 flex items-center justify-between">
+  <h1 class="text-xl font-semibold text-white">{{ titulo }}</h1>
+</header>
+
+<form method="post" class="grid gap-4 max-w-3xl">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Fecha</label>
+      <input type="date" name="fecha" required class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+    </div>
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Monto</label>
+      <input type="number" step="0.01" name="monto" required class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-right text-slate-100">
+    </div>
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Categoría</label>
+      <input name="categoria_id" placeholder="ID categoría (opcional)" class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+      {# TODO: reemplazar por <select> real con tus categorías #}
+    </div>
+  </div>
+
+  {% if scope == 'banco' %}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">Método de pago</label>
+      <select name="metodo_pago" class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+        <option value="debito">Débito</option>
+        <option value="credito">Crédito</option>
+        <option value="transferencia" selected>Transferencia</option>
+        <option value="caja_vecina">Caja Vecina</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+    <div class="md:col-span-2">
+      <label class="block text-sm text-slate-300 mb-1">N° documento (opcional)</label>
+      <input name="numero_documento" class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+    </div>
+  </div>
+  {% else %}
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">N° documento (opcional)</label>
+    <input name="numero_documento" class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+  </div>
+  {% endif %}
+
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Concepto</label>
+    <input name="concepto" required class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+  </div>
+
+  <div>
+    <label class="block text-sm text-slate-300 mb-1">Descripción (opcional)</label>
+    <textarea name="descripcion" rows="3" class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100"></textarea>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <a href="/finanzas/{{ scope }}/{{ 'entradas' if tipo=='entrada' else 'salidas' }}" class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 hover:bg-slate-800/50">Cancelar</a>
+    <button class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white">Guardar</button>
+  </div>
+</form>
+{% endblock %}
