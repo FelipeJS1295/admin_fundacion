@@ -9,6 +9,7 @@ from sqlalchemy import select, or_
 from app.db import SessionLocal
 from app.models_finanzas import BancoMovimiento, CajaMovimiento
 from app.models import Categoria  # exportado en app/models/__init__.py
+from sqlalchemy import func
 
 router = APIRouter(prefix="/finanzas", tags=["Finanzas"])
 templates = Jinja2Templates(directory="templates")
@@ -202,3 +203,107 @@ def eliminar_movimiento(scope: Literal["banco","caja"], tipo: Tipo, mid: int, db
         db.commit()
     return RedirectResponse(url=f"/finanzas/{scope}/{'entradas' if tipo=='entrada' else 'salidas'}", status_code=303)
 
+
+@router.get("/{scope}/movimientos", response_class=HTMLResponse)
+def movimientos(
+    request: Request,
+    scope: Literal["banco", "caja"],
+    db: Session = Depends(get_db),
+    # filtros
+    desde: Optional[date] = None,
+    hasta: Optional[date] = None,
+    categoria_id: Optional[int] = None,
+    metodo: Optional[str] = None,   # solo aplica a banco
+    q: Optional[str] = None,
+):
+    Model = model_for(scope)
+
+    # ---------- base query con LEFT JOIN a categorias ----------
+    base = (
+        db.query(
+            Model,
+            Categoria.nombre.label("categoria_nombre"),
+        )
+        .outerjoin(Categoria, Model.categoria_id == Categoria.id)
+    )
+
+    # ---------- filtros ----------
+    if desde:
+        base = base.filter(Model.fecha >= desde)
+    if hasta:
+        base = base.filter(Model.fecha <= hasta)
+    if categoria_id:
+        base = base.filter(Model.categoria_id == categoria_id)
+    if scope == "banco" and metodo:
+        base = base.filter(Model.metodo_pago == metodo)
+    if q:
+        base = base.filter(Model.concepto.ilike(f"%{q}%"))
+
+    # Orden cronológico asc para calcular saldo corrido en la vista
+    rows = base.order_by(Model.fecha.asc(), Model.id.asc()).all()
+
+    # Adaptar a lista de dicts amigable para Jinja
+    items = []
+    for obj, cat_nombre in rows:
+        items.append({
+            "id": obj.id,
+            "fecha": obj.fecha,
+            "tipo": obj.tipo,                       # "entrada" | "salida"
+            "monto": float(obj.monto),
+            "concepto": obj.concepto,
+            "numero_documento": obj.numero_documento,
+            "metodo_pago": getattr(obj, "metodo_pago", None),
+            "categoria_nombre": cat_nombre,
+        })
+
+    # ---------- totales del periodo filtrado ----------
+    totales = {"entradas": 0.0, "salidas": 0.0}
+    for it in items:
+        if it["tipo"] == "entrada":
+            totales["entradas"] += it["monto"]
+        else:
+            totales["salidas"] += it["monto"]
+
+    # ---------- saldo inicial (antes de 'desde') ----------
+    # Si no hay 'desde', arrancamos en 0.0
+    saldo_inicial = 0.0
+    if desde:
+        prev_base = (
+            db.query(Model.tipo, Model.monto)
+            .filter(Model.fecha < desde)
+        )
+        if categoria_id:
+            prev_base = prev_base.filter(Model.categoria_id == categoria_id)
+        if scope == "banco" and metodo:
+            prev_base = prev_base.filter(Model.metodo_pago == metodo)
+        if q:
+            prev_base = prev_base.filter(Model.concepto.ilike(f"%{q}%"))
+
+        for tipo, monto in prev_base.all():
+            m = float(monto)
+            saldo_inicial += (m if tipo == "entrada" else -m)
+
+    # ---------- catálogo de categorías para el filtro ----------
+    cats = db.execute(
+        select(Categoria.id, Categoria.nombre).order_by(Categoria.nombre)
+    ).all()
+    categorias = [{"id": r.id, "nombre": r.nombre} for r in cats]
+
+    return templates.TemplateResponse(
+        "finanzas/movimientos.html",
+        {
+            "request": request,
+            "scope": scope,
+            "items": items,
+            "totales": totales,
+            "saldo_inicial": saldo_inicial,
+            "categorias": categorias,
+            "filtro": {
+                "desde": desde,
+                "hasta": hasta,
+                "categoria_id": categoria_id,
+                "metodo": metodo if scope == "banco" else None,
+                "q": q,
+            },
+        },
+    )

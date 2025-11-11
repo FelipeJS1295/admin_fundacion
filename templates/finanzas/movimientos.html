@@ -1,0 +1,165 @@
+{# templates/finanzas/movimientos.html #}
+{% extends "layouts/base.html" %}
+{% block content %}
+{% set titulo_scope = 'Banco' if scope == 'banco' else 'Caja chica' %}
+
+<header class="mb-4 flex items-center justify-between">
+  <div>
+    <h1 class="text-xl font-semibold text-white">{{ titulo_scope }} — Movimientos</h1>
+    <p class="text-slate-400 text-sm">Entradas (+) y Salidas (−) mezcladas</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="/finanzas/{{ scope }}/entrada/nuevo"
+       class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm">+ Nueva entrada</a>
+    <a href="/finanzas/{{ scope }}/salida/nuevo"
+       class="px-3 py-2 rounded-lg bg-rose-700 hover:bg-rose-600 text-white text-sm">+ Nueva salida</a>
+  </div>
+</header>
+
+<!-- Filtros -->
+<form method="get" class="mb-4 grid grid-cols-1 md:grid-cols-6 gap-3">
+  <div>
+    <label class="block text-xs text-slate-400 mb-1">Desde</label>
+    <input type="date" name="desde" value="{{ filtro.desde or '' }}"
+           class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+  </div>
+  <div>
+    <label class="block text-xs text-slate-400 mb-1">Hasta</label>
+    <input type="date" name="hasta" value="{{ filtro.hasta or '' }}"
+           class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+  </div>
+  <div>
+    <label class="block text-xs text-slate-400 mb-1">Categoría</label>
+    <select name="categoria_id"
+            class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+      <option value="">Todas</option>
+      {% for c in categorias %}
+        <option value="{{ c.id }}" {{ 'selected' if filtro.categoria_id == c.id else '' }}>{{ c.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  {% if scope == 'banco' %}
+  <div>
+    <label class="block text-xs text-slate-400 mb-1">Método</label>
+    <select name="metodo"
+            class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+      <option value="">Todos</option>
+      {% for m in ['debito','credito','transferencia','caja_vecina','otro'] %}
+        <option value="{{ m }}" {{ 'selected' if filtro.metodo == m else '' }}>{{ m }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  <div class="md:col-span-2">
+    <label class="block text-xs text-slate-400 mb-1">Buscar (concepto)</label>
+    <div class="flex gap-2">
+      <input name="q" value="{{ filtro.q or '' }}"
+             class="flex-1 rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100"
+             placeholder="Ej: donación, transferencia, útiles...">
+      <button class="px-4 rounded-lg bg-slate-700 hover:bg-slate-600 text-white">Filtrar</button>
+      <a href="/finanzas/{{ scope }}/movimientos"
+         class="px-3 rounded-lg border border-white/10 text-slate-300 hover:bg-slate-800/50">Limpiar</a>
+    </div>
+  </div>
+</form>
+
+{# Totales del período #}
+<div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+  <div class="rounded-xl border border-white/10 bg-slate-900/60 p-4">
+    <div class="text-slate-400 text-sm">Total Entradas</div>
+    <div class="text-white text-lg font-semibold">$
+      {{ '%.2f'|format(totales.entradas or 0.0) }}
+    </div>
+  </div>
+  <div class="rounded-xl border border-white/10 bg-slate-900/60 p-4">
+    <div class="text-slate-400 text-sm">Total Salidas</div>
+    <div class="text-white text-lg font-semibold">-$
+      {{ '%.2f'|format(totales.salidas or 0.0) }}
+    </div>
+  </div>
+  <div class="rounded-xl border border-white/10 bg-slate-900/60 p-4">
+    <div class="text-slate-400 text-sm">Saldo del período</div>
+    {# saldo = entradas - salidas #}
+    <div class="text-white text-lg font-semibold">
+      ${{ '%.2f'|format((totales.entradas or 0.0) - (totales.salidas or 0.0)) }}
+    </div>
+  </div>
+</div>
+
+<div class="rounded-xl border border-white/10 bg-slate-900/60 p-4">
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm text-slate-200">
+      <thead class="text-slate-400">
+        <tr>
+          <th class="px-3 py-2 text-left">Fecha</th>
+          <th class="px-3 py-2 text-left">Tipo</th>
+          {% if scope == 'banco' %}<th class="px-3 py-2 text-left">Método</th>{% endif %}
+          <th class="px-3 py-2 text-left">Concepto</th>
+          <th class="px-3 py-2 text-left">Categoría</th>
+          <th class="px-3 py-2 text-left">N° Doc</th>
+          <th class="px-3 py-2 text-right">Monto (+/−)</th>
+          <th class="px-3 py-2 text-right">Saldo</th>
+          <th class="px-3 py-2 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set ns = namespace(saldo = saldo_inicial or 0.0) %}
+        {% for i in items %}
+          {# monto firmado en base al tipo #}
+          {% set firmado = (i.monto if i.tipo == 'entrada' else -1 * i.monto) %}
+          {% set ns.saldo = ns.saldo + firmado %}
+          <tr class="border-t border-white/5">
+            <td class="px-3 py-2">{{ i.fecha }}</td>
+            <td class="px-3 py-2">
+              <span class="px-2 py-0.5 rounded text-xs
+                {{ 'bg-emerald-700/60' if i.tipo=='entrada' else 'bg-rose-700/60' }}">
+                {{ i.tipo|capitalize }}
+              </span>
+            </td>
+            {% if scope == 'banco' %}
+              <td class="px-3 py-2">{{ i.metodo_pago }}</td>
+            {% endif %}
+            <td class="px-3 py-2">{{ i.concepto }}</td>
+            <td class="px-3 py-2">{{ i.categoria_nombre or '' }}</td>
+            <td class="px-3 py-2">{{ i.numero_documento or '' }}</td>
+            <td class="px-3 py-2 text-right">
+              <span class="{{ 'text-emerald-400' if firmado >= 0 else 'text-rose-400' }}">
+                {{ '+' if firmado >= 0 else '−' }}${{ '%.2f'|format(firmado|abs) }}
+              </span>
+            </td>
+            <td class="px-3 py-2 text-right">
+              ${{ '%.2f'|format(ns.saldo) }}
+            </td>
+            <td class="px-3 py-2 text-right">
+              <a href="/finanzas/{{ scope }}/{{ i.tipo }}/{{ i.id }}/editar"
+                 class="inline-block px-2 py-1 rounded-md text-xs bg-sky-700 hover:bg-sky-600">Editar</a>
+              <form method="post" action="/finanzas/{{ scope }}/{{ i.tipo }}/{{ i.id }}/eliminar"
+                    class="inline-block ml-1"
+                    onsubmit="return confirm('¿Eliminar este movimiento?');">
+                <button class="px-2 py-1 rounded-md text-xs bg-rose-700 hover:bg-rose-600">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="9" class="px-3 py-6 text-center text-slate-400">Sin movimientos</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot class="border-t border-white/10">
+        <tr>
+          <td colspan="{{ 7 + (1 if scope == 'banco' else 0) }}" class="px-3 py-3 text-right font-medium text-slate-300">
+            Saldo final
+          </td>
+          <td class="px-3 py-3 text-right font-semibold text-white">
+            ${{ '%.2f'|format( (saldo_inicial or 0.0) + ((totales.entradas or 0.0) - (totales.salidas or 0.0)) ) }}
+          </td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% endblock %}
