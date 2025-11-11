@@ -5,6 +5,7 @@ from datetime import date
 from typing import Optional, Literal
 from starlette.templating import Jinja2Templates
 from sqlalchemy import select, or_
+from app.utils.money import clp, clp_signed
 
 from app.db import SessionLocal
 from app.models_finanzas import BancoMovimiento, CajaMovimiento
@@ -13,6 +14,8 @@ from sqlalchemy import func
 
 router = APIRouter(prefix="/finanzas", tags=["Finanzas"])
 templates = Jinja2Templates(directory="templates")
+templates.env.filters["clp"] = clp
+templates.env.filters["clp_signed"] = clp_signed
 
 Tipo = Literal["entrada", "salida"]
 

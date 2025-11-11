@@ -69,21 +69,16 @@
 <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
   <div class="rounded-xl border border-white/10 bg-slate-900/60 p-4">
     <div class="text-slate-400 text-sm">Total Entradas</div>
-    <div class="text-white text-lg font-semibold">$
-      {{ '%.2f'|format(totales.entradas or 0.0) }}
-    </div>
+    <div class="text-white text-lg font-semibold">{{ totales.entradas|clp }}</div>
   </div>
   <div class="rounded-xl border border-white/10 bg-slate-900/60 p-4">
     <div class="text-slate-400 text-sm">Total Salidas</div>
-    <div class="text-white text-lg font-semibold">-$
-      {{ '%.2f'|format(totales.salidas or 0.0) }}
-    </div>
+    <div class="text-white text-lg font-semibold">−{{ totales.salidas|clp }}</div>
   </div>
   <div class="rounded-xl border border-white/10 bg-slate-900/60 p-4">
     <div class="text-slate-400 text-sm">Saldo del período</div>
-    {# saldo = entradas - salidas #}
     <div class="text-white text-lg font-semibold">
-      ${{ '%.2f'|format((totales.entradas or 0.0) - (totales.salidas or 0.0)) }}
+      {{ ((totales.entradas or 0.0) - (totales.salidas or 0.0))|clp }}
     </div>
   </div>
 </div>
@@ -107,7 +102,6 @@
       <tbody>
         {% set ns = namespace(saldo = saldo_inicial or 0.0) %}
         {% for i in items %}
-          {# monto firmado en base al tipo #}
           {% set firmado = (i.monto if i.tipo == 'entrada' else -1 * i.monto) %}
           {% set ns.saldo = ns.saldo + firmado %}
           <tr class="border-t border-white/5">
@@ -126,12 +120,10 @@
             <td class="px-3 py-2">{{ i.numero_documento or '' }}</td>
             <td class="px-3 py-2 text-right">
               <span class="{{ 'text-emerald-400' if firmado >= 0 else 'text-rose-400' }}">
-                {{ '+' if firmado >= 0 else '−' }}${{ '%.2f'|format(firmado|abs) }}
+                {{ firmado|clp_signed }}
               </span>
             </td>
-            <td class="px-3 py-2 text-right">
-              ${{ '%.2f'|format(ns.saldo) }}
-            </td>
+            <td class="px-3 py-2 text-right">{{ ns.saldo|clp }}</td>
             <td class="px-3 py-2 text-right">
               <a href="/finanzas/{{ scope }}/{{ i.tipo }}/{{ i.id }}/editar"
                  class="inline-block px-2 py-1 rounded-md text-xs bg-sky-700 hover:bg-sky-600">Editar</a>
@@ -154,7 +146,9 @@
             Saldo final
           </td>
           <td class="px-3 py-3 text-right font-semibold text-white">
-            ${{ '%.2f'|format( (saldo_inicial or 0.0) + ((totales.entradas or 0.0) - (totales.salidas or 0.0)) ) }}
+            {{
+              ((saldo_inicial or 0.0) + ((totales.entradas or 0.0) - (totales.salidas or 0.0)))|clp
+            }}
           </td>
           <td></td>
         </tr>
