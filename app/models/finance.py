@@ -2,40 +2,35 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import (
-    String, Integer, Date, DateTime, ForeignKey, Numeric, Text, Boolean
-)
+from sqlalchemy import String, Integer, Date, DateTime, ForeignKey, Numeric, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-# 👈 Usa SIEMPRE la Base única del proyecto
-from app.models import Base
-
+# 👈 SIEMPRE desde .base
+from app.models.base import Base
 
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    username: Mapped[str] = mapped_column(String(80), unique=True, index=True)  # puede ser email
+    username: Mapped[str] = mapped_column(String(80), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    role: Mapped[str] = mapped_column(String(10), default="User")  # "Admin" | "User"
+    role: Mapped[str] = mapped_column(String(10), default="User")
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     creado_en: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
 
 class Categoria(Base):
     __tablename__ = "categorias"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     nombre: Mapped[str] = mapped_column(String(80), unique=True, index=True)
-    tipo: Mapped[str] = mapped_column(String(10))  # "entrada", "salida" o "mixta"
+    tipo: Mapped[str] = mapped_column(String(10))  # entrada | salida | mixta
     creado_en: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     transacciones: Mapped[list["Transaccion"]] = relationship(back_populates="categoria")
 
-
 class Transaccion(Base):
     __tablename__ = "transacciones"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    fecha: Mapped[datetime] = mapped_column(Date, nullable=False)       # si es solo fecha, Date está OK
-    tipo: Mapped[str] = mapped_column(String(10))                       # "entrada" | "salida"
+    fecha: Mapped[datetime] = mapped_column(Date, nullable=False)
+    tipo: Mapped[str] = mapped_column(String(10))
     monto: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     metodo_pago: Mapped[str] = mapped_column(String(30), default="efectivo")
     concepto: Mapped[str] = mapped_column(String(120), default="")

@@ -8,11 +8,13 @@ import os
 # Base de datos y modelos
 # -------------------------------
 from app.db import engine, SessionLocal
+
+# Importa la Base y modelos principales desde el paquete models
 from app.models import Base, User
 
-# ⚙️ Importa todos los modelos que tengan tablas (para registrarlos en el mismo Base.metadata)
-import app.models.finance         # contiene Categoria
-import app.models_finanzas        # contiene BancoMovimiento y CajaMovimiento
+# Asegura que todas las tablas se registren en el mismo metadata
+import app.models.finance          # incluye User, Categoria, Transaccion
+import app.models_finanzas         # incluye BancoMovimiento, CajaMovimiento
 
 # -------------------------------
 # Routers
@@ -39,11 +41,14 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
 
 
 # -------------------------------
-# Inicialización
+# Inicialización al arrancar
 # -------------------------------
 @app.on_event("startup")
 def on_startup():
-    # Asegura que todas las tablas de todos los modelos se registren en el mismo metadata
+    """
+    Crea las tablas necesarias si no existen y asegura
+    que todos los modelos están sincronizados con la BD.
+    """
     Base.metadata.create_all(bind=engine)
     seed_admin_user()
 
@@ -62,19 +67,22 @@ PUBLIC_PATH_PREFIXES = (
 
 @app.middleware("http")
 async def auth_required(request: Request, call_next):
-    """Middleware que protege rutas y mantiene el usuario en request.state.user"""
+    """
+    Middleware que protege las rutas privadas.
+    Si no hay sesión iniciada, redirige a /login.
+    """
     request.state.user = None
     path = request.url.path
 
-    # Permitir rutas públicas sin sesión
+    # Permitir rutas públicas
     if path.startswith(PUBLIC_PATH_PREFIXES):
         return await call_next(request)
 
+    # Validar sesión de usuario
     user_id = request.session.get("user_id")
     if not user_id:
         return RedirectResponse(url=f"/login?next={path}", status_code=303)
 
-    # Cargar usuario activo para esta request
     try:
         db = SessionLocal()
         request.state.user = db.get(User, user_id)
