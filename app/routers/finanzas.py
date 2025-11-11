@@ -6,9 +6,18 @@ from typing import Optional, Literal
 from app.db import SessionLocal
 from starlette.templating import Jinja2Templates
 from app.models_finanzas import BancoMovimiento, CajaMovimiento
+from app.models.finance import Categoria
+from sqlalchemy import select, or_
 
 router = APIRouter(prefix="/finanzas", tags=["Finanzas"])
 templates = Jinja2Templates(directory="templates")
+
+def to_int_or_none(v: str | None):
+    if not v: return None
+    v = v.strip()
+    if v == "" or v.lower() == "null": return None
+    try: return int(v)
+    except ValueError: return None
 
 def get_db():
     db = SessionLocal()
@@ -66,29 +75,42 @@ def caja_salidas(request: Request, db: Session = Depends(get_db),
 
 # ---------- FORM NUEVO ----------
 @router.get("/{scope}/{tipo}/nuevo", response_class=HTMLResponse)
-def nuevo_movimiento(request: Request, scope: Literal["banco","caja"], tipo: Tipo):
-    return templates.TemplateResponse("finanzas/form_movimiento.html", {"request": request, "scope": scope, "tipo": tipo})
+def nuevo_movimiento(request: Request, scope: Literal["banco","caja"], tipo: Tipo, db: Session = Depends(get_db)):
+    rows = db.execute(
+        select(Categoria.id, Categoria.nombre)
+        .where(or_(Categoria.tipo == tipo, Categoria.tipo == "mixta"))
+        .order_by(Categoria.nombre)
+    ).all()
+    categorias = [{"id": r.id, "nombre": r.nombre} for r in rows]
+    return templates.TemplateResponse(
+        "finanzas/form_movimiento.html",
+        {"request": request, "scope": scope, "tipo": tipo, "categorias": categorias}
+    )
 
 @router.post("/{scope}/{tipo}/nuevo")
 def crear_movimiento(scope: Literal["banco","caja"], tipo: Tipo,
                      fecha: str = Form(...),
                      monto: float = Form(...),
                      concepto: str = Form(...),
-                     categoria_id: Optional[int] = Form(None),
-                     metodo_pago: Optional[str] = Form(None),
-                     numero_documento: Optional[str] = Form(None),
-                     descripcion: Optional[str] = Form(None),
+                     categoria_id: str | None = Form(None),   # 👈 string
+                     metodo_pago: str | None = Form(None),
+                     numero_documento: str | None = Form(None),
+                     descripcion: str | None = Form(None),
                      db: Session = Depends(get_db)):
+    cat_id = to_int_or_none(categoria_id)
+
     if scope == "banco":
-        obj = BancoMovimiento(fecha=fecha, tipo=tipo, monto=monto, concepto=concepto,
-                              categoria_id=categoria_id, metodo_pago=metodo_pago or "otro",
-                              numero_documento=numero_documento, descripcion=descripcion)
-        db.add(obj)
-        db.commit()
+        obj = BancoMovimiento(
+            fecha=fecha, tipo=tipo, monto=monto, concepto=concepto,
+            categoria_id=cat_id, metodo_pago=(metodo_pago or "otro"),
+            numero_documento=numero_documento, descripcion=descripcion
+        )
+        db.add(obj); db.commit()
         return RedirectResponse(url=f"/finanzas/banco/{'entradas' if tipo=='entrada' else 'salidas'}", status_code=303)
     else:
-        obj = CajaMovimiento(fecha=fecha, tipo=tipo, monto=monto, concepto=concepto,
-                             categoria_id=categoria_id, numero_documento=numero_documento, descripcion=descripcion)
-        db.add(obj)
-        db.commit()
+        obj = CajaMovimiento(
+            fecha=fecha, tipo=tipo, monto=monto, concepto=concepto,
+            categoria_id=cat_id, numero_documento=numero_documento, descripcion=descripcion
+        )
+        db.add(obj); db.commit()
         return RedirectResponse(url=f"/finanzas/caja/{'entradas' if tipo=='entrada' else 'salidas'}", status_code=303)

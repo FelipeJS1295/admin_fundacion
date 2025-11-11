@@ -16,9 +16,13 @@
       <input type="number" step="0.01" name="monto" required class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-right text-slate-100">
     </div>
     <div>
-      <label class="block text-sm text-slate-300 mb-1">Categoría</label>
-      <input name="categoria_id" placeholder="ID categoría (opcional)" class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
-      {# TODO: reemplazar por <select> real con tus categorías #}
+      <label class="block text-sm text-slate-300 mb-1">Categoría (opcional)</label>
+      <select name="categoria_id" class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-100">
+        <option value="">— Sin categoría —</option>
+        {% for c in categorias %}
+          <option value="{{ c.id }}">{{ c.nombre }}</option>
+        {% endfor %}
+      </select>
     </div>
   </div>
 
