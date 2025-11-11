@@ -8,7 +8,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 # 👈 Usa SIEMPRE la Base única del proyecto
-from app.models.base import Base
+from app.models import Base
 
 
 class User(Base):
