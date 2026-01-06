@@ -6,19 +6,19 @@
   <div>
     <label class="block text-sm text-slate-300 mb-1">Desde</label>
     <input type="date" name="desde" value="{{ filtros.desde or '' }}"
-           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
   </div>
   <div>
     <label class="block text-sm text-slate-300 mb-1">Hasta</label>
     <input type="date" name="hasta" value="{{ filtros.hasta or '' }}"
-           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
   </div>
   <div>
     <label class="block text-sm text-slate-300 mb-1">Categoría</label>
     <select name="categoria_id" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
       <option value="">Todas</option>
       {% for c in categorias %}
-        <option value="{{ c.id }}" {{ 'selected' if filtros.categoria_id==c.id else '' }}>{{ c.nombre }}</option>
+      <option value="{{ c.id }}" {{ 'selected' if filtros.categoria_id==c.id else '' }}>{{ c.nombre }}</option>
       {% endfor %}
     </select>
   </div>
@@ -27,19 +27,20 @@
     <select name="metodo_pago" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
       <option value="">Todos</option>
       {% for m in ['efectivo','transferencia','debito','credito','otros'] %}
-        <option value="{{ m }}" {{ 'selected' if filtros.metodo_pago==m else '' }}>{{ m|capitalize }}</option>
+      <option value="{{ m }}" {{ 'selected' if filtros.metodo_pago==m else '' }}>{{ m|capitalize }}</option>
       {% endfor %}
     </select>
   </div>
   <div class="md:col-span-2">
     <label class="block text-sm text-slate-300 mb-1">Buscar</label>
     <input type="text" name="q" value="{{ filtros.q or '' }}" placeholder="Descripción..."
-           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+      class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
   </div>
   <div class="md:col-span-6 flex gap-2">
     <button class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Filtrar</button>
     <a href="/entradas" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">Limpiar</a>
-    <a href="/entradas/nueva" class="ml-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white">Nueva entrada</a>
+    <a href="/entradas/nueva" class="ml-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white">Nueva
+      entrada</a>
   </div>
 </form>
 
@@ -51,20 +52,17 @@
 </div>
 
 {% macro sort_link(col_key, label) -%}
-  {# determina la próxima dirección #}
-  {% set is_current = (filtros.sort == col_key) %}
-  {% set next_dir = 'asc' if (not is_current or filtros.dir == 'desc') else 'desc' %}
-  <a
-    href="/entradas?desde={{ filtros.desde }}&hasta={{ filtros.hasta }}&categoria_id={{ filtros.categoria_id or '' }}&metodo_pago={{ filtros.metodo_pago }}&q={{ filtros.q }}&limit={{ filtros.limit }}&sort={{ col_key }}&dir={{ next_dir }}"
-    class="inline-flex items-center gap-1 hover:text-white"
-  >
-    <span>{{ label }}</span>
-    {% if is_current %}
-      <span class="text-xs opacity-70">{{ '▲' if filtros.dir == 'asc' else '▼' }}</span>
-    {% else %}
-      <span class="text-xs opacity-40">⇅</span>
-    {% endif %}
-  </a>
+{% set is_current = (filtros.sort == col_key) %}
+{% set next_dir = 'asc' if (not is_current or filtros.dir == 'desc') else 'desc' %}
+<a href="{{ request.url.include_query_params(sort=col_key, dir=next_dir) }}"
+  class="inline-flex items-center gap-1 hover:text-white">
+  <span>{{ label }}</span>
+  {% if is_current %}
+  <span class="text-xs opacity-70">{{ '▲' if filtros.dir == 'asc' else '▼' }}</span>
+  {% else %}
+  <span class="text-xs opacity-40">⇅</span>
+  {% endif %}
+</a>
 {%- endmacro %}
 
 <div class="overflow-x-auto rounded-2xl border border-slate-800">
@@ -90,13 +88,16 @@
         <td class="px-3 py-2 space-x-2">
           <a class="underline" href="/entradas/{{ t.id }}">Ver</a>
           <a class="underline" href="/entradas/{{ t.id }}/editar">Editar</a>
-          <form method="post" action="/entradas/{{ t.id }}/eliminar" class="inline" onsubmit="return confirm('¿Eliminar entrada?');">
+          <form method="post" action="/entradas/{{ t.id }}/eliminar" class="inline"
+            onsubmit="return confirm('¿Eliminar entrada?');">
             <button class="underline text-rose-300">Eliminar</button>
           </form>
         </td>
       </tr>
       {% else %}
-      <tr><td class="px-3 py-4 text-slate-400" colspan="6">No hay entradas.</td></tr>
+      <tr>
+        <td class="px-3 py-4 text-slate-400" colspan="6">No hay entradas.</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>

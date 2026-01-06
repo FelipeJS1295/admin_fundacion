@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="es" class="h-full">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,20 +12,24 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] },
-          colors: { brand:{DEFAULT:'#10b981',600:'#059669',700:'#047857'} },
-          boxShadow: { soft:'0 10px 30px -12px rgb(0 0 0 / .35)' },
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+          colors: { brand: { DEFAULT: '#10b981', 600: '#059669', 700: '#047857' } },
+          boxShadow: { soft: '0 10px 30px -12px rgb(0 0 0 / .35)' },
         }
       }
     }
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   {% block head %}{% endblock %}
 </head>
+
 <body class="h-full bg-slate-950 text-slate-100 antialiased">
-  <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:m-3 focus:rounded-md focus:bg-slate-800 focus:px-3 focus:py-2">Saltar al contenido</a>
+  <a href="#main"
+    class="sr-only focus:not-sr-only focus:absolute focus:m-3 focus:rounded-md focus:bg-slate-800 focus:px-3 focus:py-2">Saltar
+    al contenido</a>
 
   {% set path = request.url.path %}
   <div class="min-h-screen flex">
@@ -58,27 +63,42 @@
 
   <!-- Drawer móvil -->
   <script>
-    const btn  = document.getElementById('btnSidebar');
+    const btn = document.getElementById('btnSidebar');
     const side = document.getElementById('sidebar');
     const back = document.getElementById('backdrop');
-    function toggleDrawer(show){
+    function toggleDrawer(show) {
       const open = show ?? side.classList.contains('-translate-x-full');
-      if(open){
+      if (open) {
         side.classList.remove('-translate-x-full'); side.classList.add('translate-x-0');
-        back.classList.remove('hidden'); btn?.setAttribute('aria-expanded','true');
-      }else{
+        back.classList.remove('hidden'); btn?.setAttribute('aria-expanded', 'true');
+      } else {
         side.classList.add('-translate-x-full'); side.classList.remove('translate-x-0');
-        back.classList.add('hidden'); btn?.setAttribute('aria-expanded','false');
+        back.classList.add('hidden'); btn?.setAttribute('aria-expanded', 'false');
       }
     }
     btn?.addEventListener('click', () => toggleDrawer(true));
     back?.addEventListener('click', () => toggleDrawer(false));
-    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') toggleDrawer(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleDrawer(false); });
     if (window.matchMedia('(min-width: 768px)').matches === false) {
       side.classList.add('-translate-x-full');
     }
+
+    document.addEventListener("submit", (e) => {
+      const form = e.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      if ((form.method || "").toLowerCase() !== "get") return;
+
+      // Borra inputs/selects vacíos para que no se envíen como ?campo=
+      [...form.elements].forEach((el) => {
+        if (!el.name) return;
+        if (el.disabled) return;
+        const v = (el.value ?? "").toString().trim();
+        if (v === "") el.removeAttribute("name");
+      });
+    });
   </script>
 
   {% block extra_js %}{% endblock %}
 </body>
+
 </html>
