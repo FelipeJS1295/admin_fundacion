@@ -8,7 +8,7 @@
             <p class="text-slate-500 text-xs uppercase tracking-widest font-bold">Configuración de exportación</p>
         </div>
         <div class="flex gap-4">
-            <button onclick="window.print()"
+            <button onclick="imprimirInformeLimpio()"
                 class="px-6 py-3 bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-emerald-500 shadow-lg shadow-emerald-900/20 transition-all">
                 Generar PDF Oficial
             </button>
@@ -220,5 +220,16 @@
             plugins: { legend: { display: false } }
         }
     });
+
+    function imprimirInformeLimpio() {
+        // 1. Capturamos los parámetros de búsqueda actuales (desde, hasta, origen)
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // 2. Construimos la URL hacia la ruta de impresión pura
+        const urlImpresion = `/informes/imprimir?${urlParams.toString()}`;
+
+        // 3. Abrimos en una pestaña nueva
+        window.open(urlImpresion, '_blank');
+    }
 </script>
 {% endblock %}
