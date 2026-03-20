@@ -19,8 +19,9 @@ def dashboard_consolidado(
     categoria_id: Optional[int] = Query(None),
     metodo: Optional[str] = Query(None),
     origen: Optional[str] = Query(None),
-    agrupar: str = Query("dia"), # Nuevo: 'dia', 'mes', 'año'
+    agrupar: str = Query("dia"),
 ):
+    # 1. Configuración de fuentes
     fuentes_config = []
     if not origen or origen == "Banco":
         fuentes_config.append({"model": BancoMovimiento, "label": "Banco"})
@@ -28,7 +29,7 @@ def dashboard_consolidado(
         fuentes_config.append({"model": CajaMovimiento, "label": "Caja"})
 
     movimientos_mezclados = []
-    datos_agrupados = {} # Para el gráfico
+    datos_agrupados = {}
     datos_cat_ent = {}
     datos_cat_sal = {}
 
@@ -41,20 +42,19 @@ def dashboard_consolidado(
         if desde: query = query.filter(Model.fecha >= desde)
         if hasta: query = query.filter(Model.fecha <= hasta)
         if categoria_id: query = query.filter(Model.categoria_id == categoria_id)
-        
+        if fuente["label"] == "Banco" and metodo:
+            query = query.filter(Model.metodo_pago == metodo)
+
         resultados = query.all()
 
         for obj, cat_nombre in resultados:
             monto = float(obj.monto)
             cat_name = cat_nombre or "Sin categoría"
             
-            # --- LÓGICA DE AGRUPACIÓN PARA EL GRÁFICO ---
-            if agrupar == "año":
-                key_grafico = obj.fecha.strftime("%Y")
-            elif agrupar == "mes":
-                key_grafico = obj.fecha.strftime("%Y-%m")
-            else:
-                key_grafico = obj.fecha.isoformat()
+            # Agrupación para el gráfico
+            if agrupar == "año": key_grafico = obj.fecha.strftime("%Y")
+            elif agrupar == "mes": key_grafico = obj.fecha.strftime("%Y-%m")
+            else: key_grafico = obj.fecha.isoformat()
 
             if key_grafico not in datos_agrupados:
                 datos_agrupados[key_grafico] = {"entradas": 0, "salidas": 0}
@@ -66,7 +66,6 @@ def dashboard_consolidado(
                 datos_agrupados[key_grafico]["salidas"] += monto
                 datos_cat_sal[cat_name] = datos_cat_sal.get(cat_name, 0) + monto
 
-            # Datos para la tabla (siempre individuales)
             movimientos_mezclados.append({
                 "fecha": obj.fecha,
                 "tipo": obj.tipo,
@@ -78,11 +77,7 @@ def dashboard_consolidado(
 
     movimientos_mezclados.sort(key=lambda x: x["fecha"], reverse=True)
     
-    serie_grafico = [
-        {"label": k, "entradas": v["entradas"], "salidas": v["salidas"]} 
-        for k, v in sorted(datos_agrupados.items())
-    ]
-    
+    serie_grafico = [{"label": k, "entradas": v["entradas"], "salidas": v["salidas"]} for k, v in sorted(datos_agrupados.items())]
     cat_ent_list = [{"categoria": k, "total": v} for k, v in sorted(datos_cat_ent.items(), key=lambda x: x[1], reverse=True)]
     cat_sal_list = [{"categoria": k, "total": v} for k, v in sorted(datos_cat_sal.items(), key=lambda x: x[1], reverse=True)]
 
