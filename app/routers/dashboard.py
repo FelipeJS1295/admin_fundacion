@@ -1,13 +1,12 @@
+from datetime import date
+from typing import Optional
 from fastapi import APIRouter, Request, Depends, Query
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
-from typing import Optional, Literal
-from datetime import date
-
 from app.db import get_db
-from app.models_finanzas import BancoMovimiento, CajaMovimiento  # Tus nuevos modelos
+from app.models_finanzas import BancoMovimiento, CajaMovimiento
 from app.models import Categoria
-from app.core.templates import templates # O Jinja2Templates si usas el otro
+from app.core.templates import templates
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -19,71 +18,90 @@ def dashboard_consolidado(
     hasta: Optional[date] = Query(None),
     categoria_id: Optional[int] = Query(None),
     metodo: Optional[str] = Query(None),
+    origen: Optional[str] = Query(None),
 ):
-    # --- 1. Definir fuentes de datos ---
-    fuentes = [
-        {"model": BancoMovimiento, "label": "Banco", "color": "blue"},
-        {"model": CajaMovimiento, "label": "Caja", "color": "green"}
-    ]
-    
-    movimientos_mezclados = []
+    # 1. Configuración de fuentes según filtro de origen
+    fuentes_config = []
+    if not origen or origen == "Banco":
+        fuentes_config.append({"model": BancoMovimiento, "label": "Banco"})
+    if not origen or origen == "Caja":
+        fuentes_config.append({"model": CajaMovimiento, "label": "Caja"})
 
-    # --- 2. Consultar ambas tablas ---
-    for fuente in fuentes:
+    movimientos_mezclados = []
+    datos_por_dia = {}
+    datos_cat_ent = {}
+    datos_cat_sal = {}
+
+    # 2. Consulta y procesamiento
+    for fuente in fuentes_config:
         Model = fuente["model"]
-        # Join con categorías para tener el nombre
         query = db.query(Model, Categoria.nombre.label("cat_nombre")).outerjoin(
             Categoria, Model.categoria_id == Categoria.id
         )
 
-        # Aplicar filtros comunes
         if desde: query = query.filter(Model.fecha >= desde)
         if hasta: query = query.filter(Model.fecha <= hasta)
         if categoria_id: query = query.filter(Model.categoria_id == categoria_id)
-        
-        # Filtro específico de Banco (si el modelo lo tiene)
         if fuente["label"] == "Banco" and metodo:
             query = query.filter(Model.metodo_pago == metodo)
 
         resultados = query.all()
 
         for obj, cat_nombre in resultados:
+            monto = float(obj.monto)
+            cat_name = cat_nombre or "Sin categoría"
+            fecha_iso = obj.fecha.isoformat()
+
+            # Datos para la tabla
             movimientos_mezclados.append({
-                "id": obj.id,
                 "fecha": obj.fecha,
-                "tipo": obj.tipo,  # 'entrada' o 'salida'
-                "monto": float(obj.monto),
-                "concepto": obj.concepto,
-                "categoria": cat_nombre or "Sin categoría",
+                "tipo": obj.tipo,
+                "monto": monto,
+                "categoria": cat_name,
                 "origen": fuente["label"],
-                "color": fuente["color"],
-                "metodo_pago": getattr(obj, "metodo_pago", "Efectivo") # Caja suele ser efectivo
+                "concepto": obj.concepto
             })
 
-    # --- 3. Ordenar por fecha (lo más nuevo arriba) ---
+            # Agregación para Gráfico de Línea
+            if fecha_iso not in datos_por_dia:
+                datos_por_dia[fecha_iso] = {"entradas": 0, "salidas": 0}
+            
+            if obj.tipo == "entrada":
+                datos_por_dia[fecha_iso]["entradas"] += monto
+                datos_cat_ent[cat_name] = datos_cat_ent.get(cat_name, 0) + monto
+            else:
+                datos_por_dia[fecha_iso]["salidas"] += monto
+                datos_cat_sal[cat_name] = datos_cat_sal.get(cat_name, 0) + monto
+
+    # 3. Ordenar y formatear para el frontend
     movimientos_mezclados.sort(key=lambda x: x["fecha"], reverse=True)
+    
+    serie_diaria = [
+        {"fecha": k, "entradas": v["entradas"], "salidas": v["salidas"]} 
+        for k, v in sorted(datos_por_dia.items())
+    ]
+    
+    cat_ent_list = [{"categoria": k, "total": v} for k, v in sorted(datos_cat_ent.items(), key=lambda x: x[1], reverse=True)]
+    cat_sal_list = [{"categoria": k, "total": v} for k, v in sorted(datos_cat_sal.items(), key=lambda x: x[1], reverse=True)]
 
-    # --- 4. Calcular Totales (KPIs) ---
-    total_entradas = sum(m["monto"] for m in movimientos_mezclados if m["tipo"] == "entrada")
-    total_salidas = sum(m["monto"] for m in movimientos_mezclados if m["tipo"] == "salida")
-    neto = total_entradas - total_salidas
-
-    # --- 5. Datos para selectores ---
-    categorias = db.query(Categoria).order_by(Categoria.nombre).all()
-
+    # 4. Respuesta
     return templates.TemplateResponse("dashboard/index.html", {
         "request": request,
-        "items": movimientos_mezclados[:20], # Mostramos solo los últimos 20 en el dashboard
+        "items": movimientos_mezclados,
         "kpi": {
-            "entradas": total_entradas,
-            "salidas": total_salidas,
-            "neto": neto
+            "entradas": sum(d['total'] for d in cat_ent_list),
+            "salidas": sum(d['total'] for d in cat_sal_list),
+            "neto": sum(d['total'] for d in cat_ent_list) - sum(d['total'] for d in cat_sal_list)
         },
-        "categorias": categorias,
+        "serie": serie_diaria,
+        "cat_entradas": cat_ent_list[:8],
+        "cat_salidas": cat_sal_list[:8],
+        "categorias": db.query(Categoria).order_by(Categoria.nombre).all(),
         "filtro": {
-            "desde": desde,
-            "hasta": hasta,
+            "desde": desde.isoformat() if desde else "",
+            "hasta": hasta.isoformat() if hasta else "",
             "categoria_id": categoria_id,
-            "metodo": metodo
+            "metodo": metodo,
+            "origen": origen
         }
     })

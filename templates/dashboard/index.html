@@ -1,112 +1,159 @@
 {% extends "layouts/base.html" %}
 {% block content %}
-<h2 class="text-2xl font-semibold mb-4">Resumen Consolidado</h2>
-<h3 class="text-xl font-semibold mb-4 text-slate-400">Caja + Banco</h3>
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <h2 class="text-2xl font-bold mb-6 text-white">Dashboard Financiero Consolidado</h2>
 
-<form method="get" action="/dashboard" class="grid gap-3 md:grid-cols-6 mb-6">
-  <div>
-    <label class="block text-sm text-slate-300 mb-1">Desde</label>
-    <input type="date" name="desde" value="{{ filtro.desde }}"
-      class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-white">
-  </div>
-  <div>
-    <label class="block text-sm text-slate-300 mb-1">Hasta</label>
-    <input type="date" name="hasta" value="{{ filtro.hasta }}"
-      class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-white">
-  </div>
-  <div>
-    <label class="block text-sm text-slate-300 mb-1">Categoría</label>
-    <select name="categoria_id" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-white">
-      <option value="">Todas</option>
-      {% for c in categorias %}
-      <option value="{{ c.id }}" {{ 'selected' if filtro.categoria_id==c.id else '' }}>{{ c.nombre }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div>
-    <label class="block text-sm text-slate-300 mb-1">Método (Solo Banco)</label>
-    <select name="metodo" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-white">
-      {% set metodos = ['','efectivo','transferencia','debito','credito','otros'] %}
-      {% for m in metodos %}
-      <option value="{{ m }}" {{ 'selected' if filtro.metodo==m else '' }}>{{ (m or 'Todos')|capitalize }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="md:col-span-2 flex items-end">
-    <button class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white w-full md:w-auto transition-colors">
-      Filtrar Datos
-    </button>
-  </div>
-</form>
+  <form method="get" action="/dashboard"
+    class="grid gap-4 md:grid-cols-5 mb-8 bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl">
+    <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Rango de Fechas</label>
+      <div class="flex gap-2">
+        <input type="date" name="desde" value="{{ filtro.desde }}"
+          class="w-full rounded-xl bg-slate-800 border-none text-xs text-white p-2.5">
+        <input type="date" name="hasta" value="{{ filtro.hasta }}"
+          class="w-full rounded-xl bg-slate-800 border-none text-xs text-white p-2.5">
+      </div>
+    </div>
+    <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Categoría</label>
+      <select name="categoria_id" class="w-full rounded-xl bg-slate-800 border-none text-sm text-white p-2.5">
+        <option value="">Todas las categorías</option>
+        {% for c in categorias %}
+        <option value="{{ c.id }}" {{ 'selected' if filtro.categoria_id==c.id else '' }}>{{ c.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Origen (Cuenta)</label>
+      <select name="origen" class="w-full rounded-xl bg-slate-800 border-none text-sm text-white p-2.5">
+        <option value="">🏦 Todos (Caja + Banco)</option>
+        <option value="Banco" {{ 'selected' if filtro.origen=='Banco' else '' }}>💳 Solo Banco</option>
+        <option value="Caja" {{ 'selected' if filtro.origen=='Caja' else '' }}>💵 Solo Caja</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Método (Banco)</label>
+      <select name="metodo" class="w-full rounded-xl bg-slate-800 border-none text-sm text-white p-2.5">
+        <option value="">Cualquier método</option>
+        {% for m in ['efectivo','transferencia','debito','credito','otros'] %}
+        <option value="{{ m }}" {{ 'selected' if filtro.metodo==m else '' }}>{{ m|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex items-end">
+      <button type="submit"
+        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition-all">
+        FILTRAR
+      </button>
+    </div>
+  </form>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-  <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
-    <div class="text-slate-400 text-sm">Total Entradas</div>
-    <div class="text-3xl font-bold mt-1 text-emerald-400">{{ kpi.entradas|clp }}</div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
+      <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Ingresos</div>
+      <div class="text-3xl font-black text-emerald-400 mt-2">{{ kpi.entradas|clp }}</div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
+      <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Gastos</div>
+      <div class="text-3xl font-black text-rose-400 mt-2">{{ kpi.salidas|clp }}</div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
+      <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Balance Neto</div>
+      <div class="text-3xl font-black mt-2 {{ 'text-emerald-400' if kpi.neto >= 0 else 'text-rose-400' }}">
+        {{ kpi.neto|clp }}
+      </div>
+    </div>
   </div>
-  <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
-    <div class="text-slate-400 text-sm">Total Salidas</div>
-    <div class="text-3xl font-bold mt-1 text-rose-400">{{ kpi.salidas|clp }}</div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 p-6 rounded-2xl h-80">
+      <h3 class="text-white text-sm font-bold mb-4 uppercase tracking-tighter">Flujo de Caja vs Banco</h3>
+      <canvas id="chartFlujo"></canvas>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl h-80">
+      <h3 class="text-white text-sm font-bold mb-4 uppercase tracking-tighter">Gastos por Categoría</h3>
+      <canvas id="chartGastos"></canvas>
+    </div>
   </div>
-  <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
-    <div class="text-slate-400 text-sm">Balance Neto</div>
-    <div class="text-3xl font-bold mt-1 {{ 'text-emerald-400' if kpi.neto >= 0 else 'text-rose-400' }}">
-      {{ kpi.neto|clp }}
+
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+    <div class="p-5 border-b border-slate-800 flex justify-between items-center">
+      <h3 class="text-white font-bold">Detalle de Movimientos</h3>
+      <span class="text-xs text-slate-500 uppercase font-bold">{{ items|length }} registros encontrados</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-950 text-slate-400 text-left">
+          <tr>
+            <th class="px-6 py-4 font-semibold uppercase tracking-widest text-[10px]">Fecha</th>
+            <th class="px-6 py-4 font-semibold uppercase tracking-widest text-[10px]">Origen</th>
+            <th class="px-6 py-4 font-semibold uppercase tracking-widest text-[10px]">Categoría</th>
+            <th class="px-6 py-4 font-semibold uppercase tracking-widest text-[10px]">Concepto</th>
+            <th class="px-6 py-4 font-semibold uppercase tracking-widest text-[10px] text-right">Monto</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800">
+          {% for item in items %}
+          <tr class="hover:bg-slate-800/30 transition-colors">
+            <td class="px-6 py-4 text-slate-400 whitespace-nowrap">{{ item.fecha }}</td>
+            <td class="px-6 py-4">
+              <span
+                class="px-2 py-0.5 rounded text-[10px] font-black uppercase border 
+                                {{ 'border-blue-500 text-blue-400 bg-blue-500/10' if item.origen == 'Banco' else 'border-amber-500 text-amber-400 bg-amber-500/10' }}">
+                {{ item.origen }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-slate-200">{{ item.categoria }}</td>
+            <td class="px-6 py-4 text-slate-500 italic">{{ item.concepto }}</td>
+            <td
+              class="px-6 py-4 text-right font-bold {{ 'text-emerald-400' if item.tipo == 'entrada' else 'text-rose-400' }}">
+              {{ '+' if item.tipo == 'entrada' else '-' }} {{ item.monto|clp }}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="px-6 py-10 text-center text-slate-500 italic">No hay registros para mostrar con los
+              filtros actuales.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<h3 class="text-lg font-semibold mb-3">Últimos movimientos (Caja y Banco)</h3>
-<div class="overflow-x-auto rounded-2xl border border-slate-800 mb-8">
-  <table class="min-w-full text-sm">
-    <thead class="bg-slate-900 text-slate-300">
-      <tr>
-        <th class="px-3 py-2 text-left">Fecha</th>
-        <th class="px-3 py-2 text-left">Origen</th>
-        <th class="px-3 py-2 text-left">Tipo</th>
-        <th class="px-3 py-2 text-left">Monto</th>
-        <th class="px-3 py-2 text-left">Categoría</th>
-        <th class="px-3 py-2 text-left">Concepto</th>
-      </tr>
-    </thead>
-    <tbody class="bg-slate-950/50">
-      {% for item in items %}
-      <tr class="border-t border-slate-800 hover:bg-slate-900/50 transition-colors">
-        <td class="px-3 py-2 text-slate-400">{{ item.fecha }}</td>
-        <td class="px-3 py-2">
-          <span
-            class="px-2 py-0.5 rounded text-[10px] uppercase font-bold border 
-                {{ 'border-blue-500 text-blue-400' if item.origen == 'Banco' else 'border-green-500 text-green-400' }}">
-            {{ item.origen }}
-          </span>
-        </td>
-        <td class="px-3 py-2">
-          <span class="px-2 py-0.5 rounded-full text-xs
-            {{ 'bg-emerald-900/40 text-emerald-200' if item.tipo=='entrada' else 'bg-rose-900/40 text-rose-200' }}">
-            {{ item.tipo|capitalize }}
-          </span>
-        </td>
-        <td class="px-3 py-2 font-mono {{ 'text-emerald-400' if item.tipo=='entrada' else 'text-rose-400' }}">
-          {{ item.monto|clp }}
-        </td>
-        <td class="px-3 py-2 text-slate-300">{{ item.categoria }}</td>
-        <td class="px-3 py-2 text-slate-500">{{ item.concepto }}</td>
-      </tr>
-      {% else %}
-      <tr>
-        <td class="px-3 py-8 text-center text-slate-500" colspan="6">No se encontraron movimientos en este rango.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const serie = {{ serie| tojson }};
+  const catGastos = {{ cat_salidas| tojson }};
+  const chartFlujoCtx = document.getElementById('chartFlujo').getContext('2d');
+  const chartGastosCtx = document.getElementById('chartGastos').getContext('2d');
 
-<style>
-  canvas {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
-  }
-</style>
+  // Chart de Flujo
+  new Chart(chartFlujoCtx, {
+    type: 'line',
+    data: {
+      labels: serie.map(s => s.fecha),
+      datasets: [
+        { label: 'Ingresos', data: serie.map(s => s.entradas), borderColor: '#10b981', backgroundColor: '#10b98122', fill: true, tension: 0.4 },
+        { label: 'Gastos', data: serie.map(s => s.salidas), borderColor: '#f43f5e', backgroundColor: '#f43f5e22', fill: true, tension: 0.4 }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#ffffff11' } }, x: { grid: { display: false } } } }
+  });
 
+  // Chart de Gastos (Donut)
+  new Chart(chartGastosCtx, {
+    type: 'doughnut',
+    data: {
+      labels: catGastos.map(c => c.categoria),
+      datasets: [{
+        data: catGastos.map(c => c.total),
+        backgroundColor: ['#e11d48', '#f43f5e', '#fb7185', '#fda4af', '#fff1f2'],
+        borderWidth: 0
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, color: '#94a3b8' } } } }
+  });
+</script>
 {% endblock %}
