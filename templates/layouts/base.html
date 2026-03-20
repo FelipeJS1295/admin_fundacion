@@ -1,169 +1,176 @@
-{% extends "layouts/base.html" %}
-{% block content %}
-<script src="https://unpkg.com/lucide@latest"></script>
+<!doctype html>
+<html lang="es" class="h-full">
 
-<div class="space-y-8">
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <h1 class="text-2xl font-black text-white tracking-tighter uppercase">Análisis Consolidado</h1>
-    <div class="px-4 py-1.5 bg-night-900 border border-slate-800 rounded-full text-[10px] font-bold text-slate-400">
-      SINCRO: CAJA + BANCO
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>{% block title %}{{ title or "Panel — JAMAROFF" }}{% endblock %}</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif']
+          },
+          colors: {
+            // Colores de marca más profundos y vibrantes
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857'
+            },
+            // Superficies estilo "Glassmorphism" y modo oscuro real
+            slate: {
+              850: '#1e293b', // Intermedio para tarjetas
+              950: '#0f172a', // Fondo principal
+              1000: '#020617' // Negro absoluto para sombras
+            }
+          },
+          boxShadow: {
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+            'soft-xl': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)'
+          },
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* Suavizado de scrollbar para diseño premium */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    body {
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+
+    .glass-effect {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+
+<body class="h-full bg-slate-950 text-slate-200 antialiased selection:bg-brand-500/30 selection:text-brand-100">
+
+  <a href="#main"
+    class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-brand-600 focus:text-white">
+    Saltar al contenido
+  </a>
+
+  <div class="min-h-screen flex overflow-hidden">
+    <div id="backdrop"
+      class="fixed inset-0 bg-slate-1000/60 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
+
+    {% include 'partials/sidebar.html' %}
+
+    <div class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+      {% include 'partials/topbar.html' %}
+
+      <main id="main" class="flex-1 overflow-x-hidden pb-12">
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+          {% include 'partials/flash.html' %}
+
+          <header class="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div class="space-y-1">
+              {% block breadcrumb %}{% endblock %}
+              <h1 class="text-3xl font-extrabold text-white tracking-tight">
+                {% block page_title %}{{ title or "Resumen" }}{% endblock %}
+              </h1>
+              <p class="text-slate-400 text-sm font-medium">{% block page_subtitle %}{% endblock %}</p>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+              {% block page_actions %}{% endblock %}
+            </div>
+          </header>
+
+          <div class="relative">
+            {% block content %}{% endblock %}
+          </div>
+
+        </div>
+      </main>
+
+      <footer class="border-t border-slate-900 bg-slate-950/50 py-6">
+        <div
+          class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-500">
+          <p>© 2026 JAMAROFF Home Atelier. Todos los derechos reservados.</p>
+          <p>Desarrollado con precisión por <a href="https://quantiumcoders.cl" target="_blank"
+              class="text-slate-400 hover:text-brand-500 transition-colors underline decoration-slate-800 underline-offset-4">quantiumcoders.cl</a>
+          </p>
+        </div>
+      </footer>
     </div>
   </div>
 
-  <form method="get" action="/dashboard"
-    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 bg-night-900 border border-slate-800 p-6 rounded-3xl shadow-2xl">
-    <div class="space-y-1.5">
-      <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Rango</label>
-      <div class="flex gap-1">
-        <input type="date" name="desde" value="{{ filtro.desde }}"
-          class="w-full bg-night-950 border border-slate-800 rounded-xl text-xs p-2.5 text-slate-300 focus:border-emerald-500 outline-none">
-        <input type="date" name="hasta" value="{{ filtro.hasta }}"
-          class="w-full bg-night-950 border border-slate-800 rounded-xl text-xs p-2.5 text-slate-300 focus:border-emerald-500 outline-none">
-      </div>
-    </div>
+  <script>
+    const btn = document.getElementById('btnSidebar');
+    const side = document.getElementById('sidebar');
+    const back = document.getElementById('backdrop');
 
-    <div class="space-y-1.5">
-      <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Origen</label>
-      <select name="origen"
-        class="w-full bg-night-950 border border-slate-800 rounded-xl text-xs p-2.5 text-slate-300 outline-none">
-        <option value="">Todos</option>
-        <option value="Banco" {{ 'selected' if filtro.origen=='Banco' else '' }}>Banco</option>
-        <option value="Caja" {{ 'selected' if filtro.origen=='Caja' else '' }}>Caja</option>
-      </select>
-    </div>
+    function toggleDrawer(show) {
+      const isMobile = window.innerWidth < 768;
+      if (!isMobile) return;
 
-    <div class="space-y-1.5">
-      <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Agrupar por</label>
-      <select name="agrupar"
-        class="w-full bg-night-950 border border-slate-800 rounded-xl text-xs p-2.5 text-slate-300 outline-none">
-        <option value="dia" {{ 'selected' if filtro.agrupar=='dia' else '' }}>Días</option>
-        <option value="mes" {{ 'selected' if filtro.agrupar=='mes' else '' }}>Meses</option>
-        <option value="año" {{ 'selected' if filtro.agrupar=='año' else '' }}>Años</option>
-      </select>
-    </div>
+      const open = show ?? side.classList.contains('-translate-x-full');
+      if (open) {
+        side.classList.remove('-translate-x-full');
+        back.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      } else {
+        side.classList.add('-translate-x-full');
+        back.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+    }
 
-    <div class="space-y-1.5">
-      <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Categoría</label>
-      <select name="categoria_id"
-        class="w-full bg-night-950 border border-slate-800 rounded-xl text-xs p-2.5 text-slate-300 outline-none">
-        <option value="">Todas</option>
-        {% for c in categorias %}
-        <option value="{{ c.id }}" {{ 'selected' if filtro.categoria_id==c.id else '' }}>{{ c.nombre }}</option>
-        {% endfor %}
-      </select>
-    </div>
+    btn?.addEventListener('click', () => toggleDrawer(true));
+    back?.addEventListener('click', () => toggleDrawer(false));
 
-    <div class="flex items-end">
-      <button type="submit"
-        class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-xl text-[10px] uppercase tracking-widest transition-all">
-        Filtrar
-      </button>
-    </div>
-  </form>
+    // Limpieza de formularios GET para URLs más limpias
+    document.addEventListener("submit", (e) => {
+      const form = e.target;
+      if (form.tagName === 'FORM' && form.method.toLowerCase() === "get") {
+        [...form.elements].forEach((el) => {
+          if (el.name && (el.value === "" || el.value === null)) {
+            el.disabled = true; // Evita que campos vacíos ensucien la URL
+          }
+        });
+      }
+    });
+  </script>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="bg-night-900 border border-slate-800 p-8 rounded-[2rem]">
-      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ingresos</p>
-      <h3 class="text-3xl font-black text-emerald-400 mt-1">{{ kpi.entradas|clp }}</h3>
-    </div>
-    <div class="bg-night-900 border border-slate-800 p-8 rounded-[2rem]">
-      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Gastos</p>
-      <h3 class="text-3xl font-black text-rose-500 mt-1">{{ kpi.salidas|clp }}</h3>
-    </div>
-    <div class="bg-night-900 border border-slate-800 p-8 rounded-[2rem]">
-      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Balance</p>
-      <h3 class="text-3xl font-black mt-1 {{ 'text-emerald-400' if kpi.neto >= 0 else 'text-rose-500' }}">{{
-        kpi.neto|clp }}</h3>
-    </div>
-  </div>
+  {% block extra_js %}{% endblock %}
+</body>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="lg:col-span-2 bg-night-900 border border-slate-800 p-8 rounded-[2rem] h-[400px]">
-      <h3 class="text-white font-bold text-[10px] uppercase tracking-widest mb-8">Flujo de Fondos</h3>
-      <canvas id="chartFlujo"></canvas>
-    </div>
-    <div class="bg-night-900 border border-slate-800 p-8 rounded-[2rem] h-[400px] flex flex-col">
-      <h3 class="text-white font-bold text-[10px] uppercase tracking-widest mb-8 text-center">Distribución Gastos</h3>
-      <div class="flex-1 relative"><canvas id="chartGastos"></canvas></div>
-      <div id="gastosLegend" class="grid grid-cols-2 gap-2 text-[8px] font-bold text-slate-500 uppercase mt-8"></div>
-    </div>
-  </div>
-
-  <div class="bg-night-900 border border-slate-800 rounded-[2.5rem] overflow-hidden">
-    <div class="px-8 py-6 border-b border-slate-800 flex justify-between items-center">
-      <h3 class="text-white font-black text-xs uppercase tracking-widest">Registro de Movimientos</h3>
-      <div class="text-[10px] font-bold text-slate-500">{{ items|length }} OPS</div>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left">
-        <thead class="bg-night-950 text-slate-600">
-          <tr>
-            <th class="px-8 py-4 text-[10px] font-black uppercase">Fecha</th>
-            <th class="px-8 py-4 text-[10px] font-black uppercase">Cuenta</th>
-            <th class="px-8 py-4 text-[10px] font-black uppercase">Categoría</th>
-            <th class="px-8 py-4 text-[10px] font-black uppercase text-right">Monto</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-800/40 text-xs">
-          {% for item in items %}
-          <tr class="hover:bg-white/[0.02] transition-colors">
-            <td class="px-8 py-4 font-mono text-slate-500">{{ item.fecha }}</td>
-            <td class="px-8 py-4">
-              <span
-                class="px-2 py-0.5 rounded border border-slate-700 text-[9px] font-black uppercase {{ 'text-blue-400' if item.origen == 'Banco' else 'text-amber-500' }}">
-                {{ item.origen }}
-              </span>
-            </td>
-            <td class="px-8 py-4 text-slate-300 font-bold uppercase tracking-tighter">{{ item.categoria }}</td>
-            <td
-              class="px-8 py-4 text-right font-black {{ 'text-emerald-400' if item.tipo == 'entrada' else 'text-rose-500' }}">
-              {{ item.monto|clp }}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  lucide.createIcons();
-  const serie = {{ serie| tojson }};
-  const catGastos = {{ cat_salidas| tojson }};
-  const paleta = {{ paleta_colores| tojson }};
-
-  // Chart Línea
-  new Chart(document.getElementById('chartFlujo'), {
-    type: 'line',
-    data: {
-      labels: serie.map(s => s.label),
-      datasets: [
-        { label: 'Entradas', data: serie.map(s => s.entradas), borderColor: '#10b981', backgroundColor: '#10b98110', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 0 },
-        { label: 'Salidas', data: serie.map(s => s.salidas), borderColor: '#f43f5e', backgroundColor: '#f43f5e10', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 0 }
-      ]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#ffffff05' }, ticks: { color: '#475569', font: { size: 9 } } }, x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 9 } } } } }
-  });
-
-  // Chart Dona
-  new Chart(document.getElementById('chartGastos'), {
-    type: 'doughnut',
-    data: {
-      labels: catGastos.map(c => c.categoria),
-      datasets: [{ data: catGastos.map(c => c.total), backgroundColor: paleta, borderWidth: 0, cutout: '85%' }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-  });
-
-  // Leyenda
-  const legend = document.getElementById('gastosLegend');
-  catGastos.forEach((cat, i) => {
-    const div = document.createElement('div');
-    div.className = 'flex items-center gap-1.5';
-    div.innerHTML = `<span class="w-1.5 h-1.5 rounded-full" style="background:${paleta[i % paleta.length]}"></span> ${cat.categoria}`;
-    legend.appendChild(div);
-  });
-</script>
-{% endblock %}
+</html>
