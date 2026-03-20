@@ -1,0 +1,126 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-12 py-10" id="informe-pro">
+
+    <div class="flex justify-between items-end border-b border-slate-800 pb-8">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tighter">ESTADO DE RESULTADOS</h1>
+            <p class="text-slate-500 font-mono text-sm uppercase tracking-widest">Periodo Mensual: {{ fecha_informe }}
+            </p>
+        </div>
+        <button onclick="window.print()"
+            class="px-6 py-3 bg-white text-black font-bold rounded-xl text-xs hover:bg-slate-200 transition-all uppercase">
+            Exportar PDF Oficial
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-slate-900/40 p-8 rounded-[2.5rem] border border-white/5">
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Ingresos vs Mes Anterior</p>
+            <div class="flex items-baseline gap-4">
+                <h2 class="text-4xl font-black text-white">{{ mes_actual.ingresos|clp }}</h2>
+                <span class="text-sm font-bold {{ 'text-emerald-400' if variaciones.ing >= 0 else 'text-rose-400' }}">
+                    {{ '↑' if variaciones.ing >= 0 else '↓' }} {{ variaciones.ing|round(1) }}%
+                </span>
+            </div>
+        </div>
+        <div class="bg-slate-900/40 p-8 rounded-[2.5rem] border border-white/5">
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Gastos vs Mes Anterior</p>
+            <div class="flex items-baseline gap-4">
+                <h2 class="text-4xl font-black text-white">{{ mes_actual.gastos|clp }}</h2>
+                <span class="text-sm font-bold {{ 'text-rose-400' if variaciones.gas >= 0 else 'text-emerald-400' }}">
+                    {{ '↑' if variaciones.gas >= 0 else '↓' }} {{ variaciones.gas|round(1) }}%
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <h3 class="text-xs font-black text-slate-600 uppercase tracking-[0.3em]">Disponibilidad por Fuente</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="flex items-center justify-between p-6 bg-night-900 rounded-2xl border-l-4 border-blue-500">
+                <span class="text-sm font-bold text-slate-300">BANCO (Fondos Digitales)</span>
+                <span class="text-xl font-black text-white">{{ fuentes.banco|clp }}</span>
+            </div>
+            <div class="flex items-center justify-between p-6 bg-night-900 rounded-2xl border-l-4 border-amber-500">
+                <span class="text-sm font-bold text-slate-300">CAJA (Efectivo Físico)</span>
+                <span class="text-xl font-black text-white">{{ fuentes.caja|clp }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div class="space-y-6">
+            <h3 class="text-xs font-black text-emerald-500 uppercase tracking-[0.3em]">Fuentes de Ingreso</h3>
+            <div class="space-y-4">
+                {% for nombre, total in top_ingresos %}
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-bold uppercase">
+                        <span class="text-slate-400">{{ nombre }}</span>
+                        <span class="text-white">{{ total|clp }}</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-emerald-500 h-full" style="width: 70%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <h3 class="text-xs font-black text-rose-500 uppercase tracking-[0.2em]">Centro de Gastos (Fuga de Capital)
+            </h3>
+            <div class="space-y-4">
+                {% for nombre, total in top_gastos %}
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-bold uppercase">
+                        <span class="text-slate-400">{{ nombre }}</span>
+                        <span class="text-white">{{ total|clp }}</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-rose-500 h-full" style="width: 85%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body {
+            background: white !important;
+            color: black !important;
+        }
+
+        #informe-pro {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        .bg-slate-900\/40,
+        .bg-night-900 {
+            background: white !important;
+            border: 1px solid #eee !important;
+            color: black !important;
+        }
+
+        h1,
+        h2,
+        h3,
+        span,
+        p {
+            color: black !important;
+        }
+
+        button {
+            display: none !important;
+        }
+
+        .w-full.bg-slate-800 {
+            background: #f0f0f0 !important;
+        }
+    }
+</style>
+{% endblock %}
