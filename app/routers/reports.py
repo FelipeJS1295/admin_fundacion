@@ -2,7 +2,9 @@ from fastapi import APIRouter, Request, Depends, Query
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from datetime import datetime, date, timedelta
+from typing import Optional, Literal  # <--- ESTO ES LO QUE FALTA
 from sqlalchemy import func, or_
+
 from app.db import get_db
 from app.models_finanzas import BancoMovimiento, CajaMovimiento
 from app.models import Categoria
