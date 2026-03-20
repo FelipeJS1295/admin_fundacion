@@ -2,153 +2,160 @@
 {% set user_obj = request.state.user|default(None, true) %}
 {% set rol = user_obj.role|default('User', true) %}
 
-<aside id="sidebar"
-       class="fixed z-50 inset-y-0 left-0 w-72 translate-x-[-110%] md:translate-x-0 md:static md:z-auto
-              bg-slate-900/70 backdrop-blur border-r border-slate-800 transition-transform">
-  <div class="h-16 px-4 flex items-center border-b border-slate-800">
-    <a href="/" class="flex items-center gap-3">
-      <div class="h-8 w-8 rounded-lg bg-brand/20 border border-brand/30 grid place-items-center">
-        <span class="text-brand font-semibold">FSJ</span>
+<aside id="sidebar" class="fixed z-50 inset-y-0 left-0 w-72 translate-x-[-110%] md:translate-x-0 md:static md:z-auto
+              bg-slate-950 border-r border-white/[0.03] transition-transform duration-300 flex flex-col">
+
+  <div class="h-20 px-6 flex items-center border-b border-white/[0.02]">
+    <a href="/" class="flex items-center gap-3 group">
+      <div
+        class="h-9 w-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center transition-transform group-hover:scale-105">
+        <i data-lucide="database" class="w-5 h-5 text-emerald-500"></i>
       </div>
-      <span class="font-semibold">Panel Fundación</span>
+      <div class="flex flex-col">
+        <span class="text-sm font-bold text-white tracking-tight uppercase">Sistema Contable</span>
+        <span class="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Administración</span>
+      </div>
     </a>
   </div>
 
-  <nav aria-label="Principal" class="p-3 space-y-2 overflow-y-auto h-[calc(100vh-4rem)]">
-    <!-- Dashboard -->
+  <nav aria-label="Principal" class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+
     <a href="/dashboard"
-       class="flex items-center gap-3 px-3 py-2 rounded-lg border
-              {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/dashboard') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}"
-       {% if path.startswith('/dashboard') %}aria-current="page"{% endif %}>
-      <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M3 12 12 3l9 9-1.5 1.5L12 5.5 4.5 13.5V21h6v-6h3v6h6v-7.5l1.5 1.5"/>
-      </svg>
+      class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all
+              {{ 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' if path.startswith('/dashboard') else 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03] border border-transparent' }}">
+      <i data-lucide="layout-grid" class="w-4 h-4"></i>
       Dashboard
     </a>
 
-    {# ---------- FINANZAS (solo no-User) ---------- #}
+    <div class="pt-6 pb-2 px-4 text-[9px] font-black text-slate-700 uppercase tracking-[0.2em]">Gestión Financiera</div>
+
     {% if rol != 'User' %}
-      {% set open_fin   = path.startswith('/finanzas') or path.startswith('/categorias') %}
-      {% set open_caja  = path.startswith('/finanzas/caja') %}
-      {% set open_banco = path.startswith('/finanzas/banco') %}
+    {% set open_fin = path.startswith('/finanzas') or path.startswith('/categorias') %}
 
-      <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if open_fin else '' }}>
-        <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/60 cursor-pointer select-none">
-          <div class="flex items-center gap-2">
-            <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z"/></svg>
-            <span class="font-medium">Finanzas</span>
-          </div>
-          <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5H7z"/></svg>
-        </summary>
+    <a href="/categorias"
+      class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all
+                {{ 'bg-white/[0.05] text-white border border-white/10' if path.startswith('/categorias') else 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03] border border-transparent' }}">
+      <i data-lucide="tags" class="w-4 h-4"></i>
+      Categorías
+    </a>
 
-        <div class="bg-slate-900/40 p-2 space-y-2">
-          <!-- Categorías -->
-          <a href="/categorias"
-            class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/categorias') else 'hover:bg-slate-800/60 text-slate-300' }}">
-            Categorías
-          </a>
-
-          <!-- Caja chica -->
-          <details class="group rounded-lg border border-slate-800 overflow-hidden" {{ 'open' if open_caja else '' }}>
-            <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/50 cursor-pointer select-none">
-              <div class="flex items-center gap-2">
-                <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3 7h18v10H3zM7 3h10v2H7zM7 19h10v2H7z"/>
-                </svg>
-                <span class="font-medium">Caja chica</span>
-              </div>
-              <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg>
-            </summary>
-            <div class="bg-slate-900/30 p-2">
-              <a href="/finanzas/caja/movimientos"
-                class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/finanzas/caja/movimientos') else 'hover:bg-slate-800/60 text-slate-300' }}">
-                Movimientos
-              </a>
-              <a href="/finanzas/caja/entradas"
-                class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/finanzas/caja/entradas') else 'hover:bg-slate-800/60 text-slate-300' }}">
-                Entradas
-              </a>
-              <a href="/finanzas/caja/salidas"
-                class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/finanzas/caja/salidas') else 'hover:bg-slate-800/60 text-slate-300' }}">
-                Salidas
-              </a>
-            </div>
-          </details>
-
-          <!-- Banco -->
-          <details class="group rounded-lg border border-slate-800 overflow-hidden" {{ 'open' if open_banco else '' }}>
-            <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/50 cursor-pointer select-none">
-              <div class="flex items-center gap-2">
-                <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 3 2 9v2h20V9L12 3Zm-9 9v9h2v-9H3Zm4 0v9h2v-9H7Zm4 0v9h2v-9h-2Zm4 0v9h2v-9h-2Zm4 0v9h2v-9h-2Z"/>
-                </svg>
-                <span class="font-medium">Banco</span>
-              </div>
-              <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg>
-            </summary>
-            <div class="bg-slate-900/30 p-2">
-              <a href="/finanzas/banco/movimientos"
-                class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/finanzas/banco/movimientos') else 'hover:bg-slate-800/60 text-slate-300' }}">
-                Movimientos
-              </a>
-              <a href="/finanzas/banco/entradas"
-                class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/finanzas/banco/entradas') else 'hover:bg-slate-800/60 text-slate-300' }}">
-                Entradas
-              </a>
-              <a href="/finanzas/banco/salidas"
-                class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/finanzas/banco/salidas') else 'hover:bg-slate-800/60 text-slate-300' }}">
-                Salidas
-              </a>
-            </div>
-          </details>
+    <details class="group" {{ 'open' if path.startswith('/finanzas/caja') else '' }}>
+      <summary
+        class="flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold text-slate-500 cursor-pointer hover:bg-white/[0.03] transition-all list-none">
+        <div class="flex items-center gap-3">
+          <i data-lucide="wallet" class="w-4 h-4"></i>
+          <span>Caja Chica</span>
         </div>
-      </details>
+        <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform group-open:rotate-180 opacity-50"></i>
+      </summary>
+      <div class="mt-1 ml-4 pl-4 border-l border-white/[0.05] space-y-1">
+        <a href="/finanzas/caja/movimientos"
+          class="block py-2 text-[11px] font-medium {{ 'text-emerald-400' if path == '/finanzas/caja/movimientos' else 'text-slate-500 hover:text-slate-300' }}">Movimientos</a>
+        <a href="/finanzas/caja/entradas"
+          class="block py-2 text-[11px] font-medium {{ 'text-emerald-400' if path == '/finanzas/caja/entradas' else 'text-slate-500 hover:text-slate-300' }}">Entradas</a>
+        <a href="/finanzas/caja/salidas"
+          class="block py-2 text-[11px] font-medium {{ 'text-emerald-400' if path == '/finanzas/caja/salidas' else 'text-slate-500 hover:text-slate-300' }}">Salidas</a>
+      </div>
+    </details>
+
+    <details class="group" {{ 'open' if path.startswith('/finanzas/banco') else '' }}>
+      <summary
+        class="flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold text-slate-500 cursor-pointer hover:bg-white/[0.03] transition-all list-none">
+        <div class="flex items-center gap-3">
+          <i data-lucide="landmark" class="w-4 h-4"></i>
+          <span>Banco</span>
+        </div>
+        <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform group-open:rotate-180 opacity-50"></i>
+      </summary>
+      <div class="mt-1 ml-4 pl-4 border-l border-white/[0.05] space-y-1">
+        <a href="/finanzas/banco/movimientos"
+          class="block py-2 text-[11px] font-medium {{ 'text-emerald-400' if path == '/finanzas/banco/movimientos' else 'text-slate-500 hover:text-slate-300' }}">Movimientos</a>
+        <a href="/finanzas/banco/entradas"
+          class="block py-2 text-[11px] font-medium {{ 'text-emerald-400' if path == '/finanzas/banco/entradas' else 'text-slate-500 hover:text-slate-300' }}">Entradas</a>
+        <a href="/finanzas/banco/salidas"
+          class="block py-2 text-[11px] font-medium {{ 'text-emerald-400' if path == '/finanzas/banco/salidas' else 'text-slate-500 hover:text-slate-300' }}">Salidas</a>
+      </div>
+    </details>
     {% endif %}
 
-    {# ---------- Inventario ---------- #}
-    {% set open_inv = path.startswith('/inventario') %}
-    <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if open_inv else '' }}>
-      <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/60 cursor-pointer select-none">
-        <div class="flex items-center gap-2">
-          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7h18v2H3zm0 4h18v10H3zM7 3h10v2H7z"/></svg>
-          <span class="font-medium">Inventario</span>
+    <div class="pt-6 pb-2 px-4 text-[9px] font-black text-slate-700 uppercase tracking-[0.2em]">Operaciones</div>
+
+    <details class="group" {{ 'open' if path.startswith('/inventario') else '' }}>
+      <summary
+        class="flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold text-slate-500 cursor-pointer hover:bg-white/[0.03] transition-all list-none">
+        <div class="flex items-center gap-3">
+          <i data-lucide="package" class="w-4 h-4"></i>
+          <span>Inventario</span>
         </div>
-        <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg>
+        <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform group-open:rotate-180 opacity-50"></i>
       </summary>
-      <div class="bg-slate-900/40 p-2">
-        <a href="/inventario/items" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/items') else 'hover:bg-slate-800/60 text-slate-300' }}">Items</a>
-        <a href="/inventario/categorias" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/inventario/categorias') else 'hover:bg-slate-800/60 text-slate-300' }}">Categorías</a>
+      <div class="mt-1 ml-4 pl-4 border-l border-white/[0.05] space-y-1">
+        <a href="/inventario/items"
+          class="block py-2 text-[11px] font-medium {{ 'text-emerald-400' if path == '/inventario/items' else 'text-slate-500 hover:text-slate-300' }}">Items</a>
+        <a href="/inventario/categorias"
+          class="block py-2 text-[11px] font-medium {{ 'text-emerald-400' if path == '/inventario/categorias' else 'text-slate-500 hover:text-slate-300' }}">Categorías</a>
       </div>
     </details>
 
-    {# ---------- Pacientes ---------- #}
-    {% set open_pac = path.startswith('/pacientes') %}
-    <details class="group rounded-xl border border-slate-800 overflow-hidden" {{ 'open' if open_pac else '' }}>
-      <summary class="flex items-center justify-between px-3 py-2 bg-slate-900/60 cursor-pointer select-none">
-        <div class="flex items-center gap-2">
-          <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.33 0-9 1.67-9 5v3h18v-3c0-3.33-5.67-5-9-5Z"/>
-          </svg>
-          <span class="font-medium">Pacientes</span>
+    <details class="group" {{ 'open' if path.startswith('/pacientes') else '' }}>
+      <summary
+        class="flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold text-slate-500 cursor-pointer hover:bg-white/[0.03] transition-all list-none">
+        <div class="flex items-center gap-3">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Pacientes</span>
         </div>
-        <svg class="h-4 w-4 opacity-70 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg>
+        <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform group-open:rotate-180 opacity-50"></i>
       </summary>
-      <div class="bg-slate-900/40 p-2">
-        <a href="/pacientes" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path == '/pacientes' else 'hover:bg-slate-800/60 text-slate-300' }}">Listado</a>
-        <a href="/pacientes/crear" class="block px-3 py-2 rounded-lg {{ 'bg-slate-800 text-white' if path.startswith('/pacientes/crear') else 'hover:bg-slate-800/60 text-slate-300' }}">Nuevo paciente</a>
+      <div class="mt-1 ml-4 pl-4 border-l border-white/[0.05] space-y-1">
+        <a href="/pacientes"
+          class="block py-2 text-[11px] font-medium {{ 'text-emerald-400' if path == '/pacientes' else 'text-slate-500 hover:text-slate-300' }}">Listado</a>
+        <a href="/pacientes/crear"
+          class="block py-2 text-[11px] font-medium {{ 'text-emerald-400' if path == '/pacientes/crear' else 'text-slate-500 hover:text-slate-300' }}">Nuevo
+          Paciente</a>
       </div>
     </details>
 
-    {# ---------- Usuarios (solo no-User) ---------- #}
     {% if rol != 'User' %}
-      <a href="/usuarios"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg border
-                {{ 'bg-slate-800/80 border-slate-700 text-white' if path.startswith('/usuarios') else 'border-transparent hover:bg-slate-800/60 text-slate-300' }}">
-        <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3ZM8 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-2.67 0-8 1.34-8 4v2h10v-2c0-1.86.76-3.41 2-4.5-1.02-.31-2.09-.5-4-.5Zm8 0c-3.67 0-9 1.84-9 4.5V20h18v-2c0-2.66-5.33-4.5-9-4.5Z"/>
-        </svg>
-        Usuarios
-      </a>
+    <div class="pt-6 pb-2 px-4 text-[9px] font-black text-slate-700 uppercase tracking-[0.2em]">Sistema</div>
+    <a href="/usuarios"
+      class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all
+                {{ 'bg-white/[0.05] text-white' if path.startswith('/usuarios') else 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]' }}">
+      <i data-lucide="user-cog" class="w-4 h-4"></i>
+      Usuarios
+    </a>
     {% endif %}
   </nav>
+
+  <div class="p-4 border-t border-white/[0.02]">
+    <div class="flex items-center gap-3 px-4 py-3 bg-white/[0.02] rounded-2xl border border-white/[0.03]">
+      <div
+        class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-[10px]">
+        {{ user_obj.username[0]|upper if user_obj else '?' }}
+      </div>
+      <div class="flex flex-col min-w-0">
+        <span class="text-[11px] font-bold text-slate-200 truncate">{{ user_obj.username if user_obj else 'Invitado'
+          }}</span>
+        <span class="text-[9px] font-black text-slate-600 uppercase tracking-tighter">{{ rol }}</span>
+      </div>
+    </div>
+  </div>
 </aside>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+</style>
