@@ -7,20 +7,24 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Forzamos la orientación horizontal en la configuración de la página */
         @page {
-            size: A4;
-            margin: 1.5cm;
+            size: A4 landscape;
+            margin: 1cm;
         }
 
         body {
             background: white;
             color: black;
             font-family: 'Inter', sans-serif;
+            width: 100%;
         }
 
+        /* Ajustamos el contenedor de los gráficos para que se vean más grandes en horizontal */
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 400px;
+            /* Aumentamos la altura ya que tenemos más ancho */
             width: 100%;
             margin-bottom: 2rem;
         }
@@ -32,6 +36,12 @@
 
             canvas {
                 max-width: 100% !important;
+                height: 400px !important;
+            }
+
+            /* Evitamos que el navegador intente meter todo en una página si hay mucho contenido */
+            .page-break {
+                page-break-before: always;
             }
         }
     </style>
