@@ -18,6 +18,7 @@ templates.env.filters["clp"] = clp
 templates.env.filters["clp_signed"] = clp_signed
 
 Tipo = Literal["entrada", "salida"]
+Scope = Literal["banco", "caja"]
 
 # -------------------------- utils --------------------------
 def get_db():
