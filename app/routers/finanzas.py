@@ -4,16 +4,19 @@ from sqlalchemy.orm import Session
 from datetime import date
 from typing import Optional, Literal
 from sqlalchemy import select, or_, func
-from app.utils.money import clp, clp_signed
 
 from app.db import SessionLocal
 from app.models_finanzas import BancoMovimiento, CajaMovimiento
 from app.models import Categoria
-from app.core.templates import templates
+from app.core.templates import templates  # Importación central
+from app.utils.money import clp, clp_signed # Importación de filtros
+
+# REGISTRO DE FILTROS (Esto es lo que falta)
+templates.env.filters["clp"] = clp
+templates.env.filters["clp_signed"] = clp_signed
 
 router = APIRouter(prefix="/finanzas", tags=["Finanzas"])
 
-# Definiciones de Tipos
 Tipo = Literal["entrada", "salida"]
 Scope = Literal["banco", "caja"]
 
