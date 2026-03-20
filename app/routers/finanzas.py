@@ -103,14 +103,22 @@ def nuevo_movimiento(request: Request, scope: Scope, tipo: Tipo, db: Session = D
 @router.get("/{scope}/{tipo}/{mid}/editar")
 def editar_movimiento(request: Request, scope: Scope, tipo: Tipo, mid: int, db: Session = Depends(get_db)):
     Model = model_for(scope)
-    obj = db.get(Model, mid)
-    if not obj:
-        return RedirectResponse(url=f"/finanzas/{scope}/movimientos", status_code=303)
-
-    categorias = db.query(Categoria).filter(or_(Categoria.tipo == tipo, Categoria.tipo == "mixta")).order_by(Categoria.nombre).all()
+    # IMPORTANTE: Usar .get(mid) o .filter().first()
+    obj = db.query(Model).filter(Model.id == mid).first() 
     
+    if not obj:
+        return HTMLResponse("<p class='text-white'>Error: No se encontró el registro.</p>")
+
+    categorias = db.query(Categoria).filter(or_(Categoria.tipo == tipo, Categoria.tipo == "mixta")).all()
+    
+    # Si la petición viene de AJAX (el modal), podrías usar un template sin layouts
+    # Pero por ahora usaremos el mismo, el JS se encargará de extraer el <form>
     return templates.TemplateResponse("finanzas/form_movimiento.html", {
-        "request": request, "scope": scope, "tipo": tipo, "categorias": categorias, "obj": obj
+        "request": request, 
+        "scope": scope, 
+        "tipo": tipo, 
+        "categorias": categorias, 
+        "obj": obj # <--- ESTE ES EL QUE LLEVA LOS DATOS
     })
 
 @router.post("/{scope}/{tipo}/nuevo")

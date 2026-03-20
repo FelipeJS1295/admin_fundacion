@@ -188,25 +188,33 @@
       content.classList.add('scale-100', 'opacity-100');
     }, 10);
 
-    fetch(`/finanzas/${scope}/${tipo}/${id}/editar`)
+    // Agregamos un timestamp para evitar cache del navegador
+    fetch(`/finanzas/${scope}/${tipo}/${id}/editar?t=${new Date().getTime()}`)
       .then(response => response.text())
       .then(html => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-        // Buscamos el formulario dentro del contenido cargado
-        const form = doc.querySelector('form');
 
-        if (form) {
+        // Seleccionamos el formulario
+        const formOriginal = doc.querySelector('form');
+
+        if (formOriginal) {
+          // Limpiamos estilos de contenedor del form original para que quepa en el modal
+          formOriginal.className = "space-y-4";
+
+          // IMPORTANTE: Forzar que los valores de los inputs se pasen al nuevo DOM
+          // A veces el value no se copia en el innerHTML si no está explícito
           body.innerHTML = '';
-          body.appendChild(form);
-          // Opcional: si usas lucide en el form
+          body.appendChild(formOriginal);
+
+          // Re-inicializar iconos si usas Lucide
           if (typeof lucide !== 'undefined') lucide.createIcons();
         } else {
-          body.innerHTML = '<p class="text-rose-500 text-center">Error al cargar el formulario.</p>';
+          body.innerHTML = '<p class="text-rose-500 text-center py-4">No se pudo cargar el formulario de edición.</p>';
         }
       })
       .catch(err => {
-        body.innerHTML = '<p class="text-rose-500 text-center">Error de red.</p>';
+        body.innerHTML = '<p class="text-rose-500 text-center py-4">Error de conexión con el servidor.</p>';
       });
   }
 
