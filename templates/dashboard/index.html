@@ -1,65 +1,64 @@
 {% extends "layouts/base.html" %}
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-6">
-  <h2 class="text-2xl font-bold mb-6 text-white">Dashboard Financiero Consolidado</h2>
+  <h2 class="text-2xl font-bold mb-6 text-white">Resumen Financiero</h2>
 
   <form method="get" action="/dashboard"
-    class="grid gap-4 md:grid-cols-5 mb-8 bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl">
-    <div>
-      <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Rango de Fechas</label>
-      <div class="flex gap-2">
+    class="grid gap-4 md:grid-cols-6 mb-8 bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl">
+    <div class="md:col-span-1">
+      <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Rango</label>
+      <div class="flex gap-1">
         <input type="date" name="desde" value="{{ filtro.desde }}"
-          class="w-full rounded-xl bg-slate-800 border-none text-xs text-white p-2.5">
+          class="w-full rounded-lg bg-slate-800 border-none text-[10px] text-white p-2">
         <input type="date" name="hasta" value="{{ filtro.hasta }}"
-          class="w-full rounded-xl bg-slate-800 border-none text-xs text-white p-2.5">
+          class="w-full rounded-lg bg-slate-800 border-none text-[10px] text-white p-2">
       </div>
     </div>
     <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Ver gráfico por</label>
+      <select name="agrupar" class="w-full rounded-lg bg-slate-800 border-none text-xs text-white p-2.5">
+        <option value="dia" {{ 'selected' if filtro.agrupar=='dia' else '' }}>Día</option>
+        <option value="mes" {{ 'selected' if filtro.agrupar=='mes' else '' }}>Mes</option>
+        <option value="año" {{ 'selected' if filtro.agrupar=='año' else '' }}>Año</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Origen</label>
+      <select name="origen" class="w-full rounded-lg bg-slate-800 border-none text-xs text-white p-2.5">
+        <option value="">Cualquiera</option>
+        <option value="Banco" {{ 'selected' if filtro.origen=='Banco' else '' }}>Banco</option>
+        <option value="Caja" {{ 'selected' if filtro.origen=='Caja' else '' }}>Caja</option>
+      </select>
+    </div>
+    <div>
       <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Categoría</label>
-      <select name="categoria_id" class="w-full rounded-xl bg-slate-800 border-none text-sm text-white p-2.5">
-        <option value="">Todas las categorías</option>
+      <select name="categoria_id" class="w-full rounded-lg bg-slate-800 border-none text-xs text-white p-2.5">
+        <option value="">Todas</option>
         {% for c in categorias %}
         <option value="{{ c.id }}" {{ 'selected' if filtro.categoria_id==c.id else '' }}>{{ c.nombre }}</option>
         {% endfor %}
       </select>
     </div>
-    <div>
-      <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Origen (Cuenta)</label>
-      <select name="origen" class="w-full rounded-xl bg-slate-800 border-none text-sm text-white p-2.5">
-        <option value="">🏦 Todos (Caja + Banco)</option>
-        <option value="Banco" {{ 'selected' if filtro.origen=='Banco' else '' }}>💳 Solo Banco</option>
-        <option value="Caja" {{ 'selected' if filtro.origen=='Caja' else '' }}>💵 Solo Caja</option>
-      </select>
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Método (Banco)</label>
-      <select name="metodo" class="w-full rounded-xl bg-slate-800 border-none text-sm text-white p-2.5">
-        <option value="">Cualquier método</option>
-        {% for m in ['efectivo','transferencia','debito','credito','otros'] %}
-        <option value="{{ m }}" {{ 'selected' if filtro.metodo==m else '' }}>{{ m|capitalize }}</option>
-        {% endfor %}
-      </select>
-    </div>
     <div class="flex items-end">
       <button type="submit"
-        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition-all">
-        FILTRAR
+        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl text-xs uppercase transition-all">
+        Actualizar
       </button>
     </div>
   </form>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
-      <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Ingresos</div>
-      <div class="text-3xl font-black text-emerald-400 mt-2">{{ kpi.entradas|clp }}</div>
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+      <div class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Ingresos</div>
+      <div class="text-3xl font-black text-emerald-400 mt-1">{{ kpi.entradas|clp }}</div>
     </div>
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
-      <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Gastos</div>
-      <div class="text-3xl font-black text-rose-400 mt-2">{{ kpi.salidas|clp }}</div>
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+      <div class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Gastos</div>
+      <div class="text-3xl font-black text-rose-400 mt-1">{{ kpi.salidas|clp }}</div>
     </div>
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
-      <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Balance Neto</div>
-      <div class="text-3xl font-black mt-2 {{ 'text-emerald-400' if kpi.neto >= 0 else 'text-rose-400' }}">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+      <div class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Saldo</div>
+      <div class="text-3xl font-black mt-1 {{ 'text-emerald-400' if kpi.neto >= 0 else 'text-rose-400' }}">
         {{ kpi.neto|clp }}
       </div>
     </div>
@@ -67,93 +66,55 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
     <div class="lg:col-span-2 bg-slate-900 border border-slate-800 p-6 rounded-2xl h-80">
-      <h3 class="text-white text-sm font-bold mb-4 uppercase tracking-tighter">Flujo de Caja vs Banco</h3>
+      <h3 class="text-slate-400 text-xs font-bold mb-4 uppercase">Evolución ({{ filtro.agrupar|capitalize }})</h3>
       <canvas id="chartFlujo"></canvas>
     </div>
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl h-80">
-      <h3 class="text-white text-sm font-bold mb-4 uppercase tracking-tighter">Gastos por Categoría</h3>
+      <h3 class="text-slate-400 text-xs font-bold mb-4 uppercase">Mix de Gastos</h3>
       <canvas id="chartGastos"></canvas>
     </div>
   </div>
 
-  <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-    <div class="p-5 border-b border-slate-800 flex justify-between items-center">
-      <h3 class="text-white font-bold">Detalle de Movimientos</h3>
-      <span class="text-xs text-slate-500 uppercase font-bold">{{ items|length }} registros encontrados</span>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-sm">
-        <thead class="bg-slate-950 text-slate-400 text-left">
-          <tr>
-            <th class="px-6 py-4 font-semibold uppercase tracking-widest text-[10px]">Fecha</th>
-            <th class="px-6 py-4 font-semibold uppercase tracking-widest text-[10px]">Origen</th>
-            <th class="px-6 py-4 font-semibold uppercase tracking-widest text-[10px]">Categoría</th>
-            <th class="px-6 py-4 font-semibold uppercase tracking-widest text-[10px]">Concepto</th>
-            <th class="px-6 py-4 font-semibold uppercase tracking-widest text-[10px] text-right">Monto</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-800">
-          {% for item in items %}
-          <tr class="hover:bg-slate-800/30 transition-colors">
-            <td class="px-6 py-4 text-slate-400 whitespace-nowrap">{{ item.fecha }}</td>
-            <td class="px-6 py-4">
-              <span
-                class="px-2 py-0.5 rounded text-[10px] font-black uppercase border 
-                                {{ 'border-blue-500 text-blue-400 bg-blue-500/10' if item.origen == 'Banco' else 'border-amber-500 text-amber-400 bg-amber-500/10' }}">
-                {{ item.origen }}
-              </span>
-            </td>
-            <td class="px-6 py-4 text-slate-200">{{ item.categoria }}</td>
-            <td class="px-6 py-4 text-slate-500 italic">{{ item.concepto }}</td>
-            <td
-              class="px-6 py-4 text-right font-bold {{ 'text-emerald-400' if item.tipo == 'entrada' else 'text-rose-400' }}">
-              {{ '+' if item.tipo == 'entrada' else '-' }} {{ item.monto|clp }}
-            </td>
-          </tr>
-          {% else %}
-          <tr>
-            <td colspan="5" class="px-6 py-10 text-center text-slate-500 italic">No hay registros para mostrar con los
-              filtros actuales.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   const serie = {{ serie| tojson }};
   const catGastos = {{ cat_salidas| tojson }};
-  const chartFlujoCtx = document.getElementById('chartFlujo').getContext('2d');
-  const chartGastosCtx = document.getElementById('chartGastos').getContext('2d');
 
-  // Chart de Flujo
-  new Chart(chartFlujoCtx, {
+  // Chart Evolución
+  new Chart(document.getElementById('chartFlujo').getContext('2d'), {
     type: 'line',
     data: {
-      labels: serie.map(s => s.fecha),
+      labels: serie.map(s => s.label), // Las etiquetas ahora vienen formateadas por Python (YYYY-MM, etc.)
       datasets: [
-        { label: 'Ingresos', data: serie.map(s => s.entradas), borderColor: '#10b981', backgroundColor: '#10b98122', fill: true, tension: 0.4 },
-        { label: 'Gastos', data: serie.map(s => s.salidas), borderColor: '#f43f5e', backgroundColor: '#f43f5e22', fill: true, tension: 0.4 }
+        { label: 'Ingresos', data: serie.map(s => s.entradas), borderColor: '#10b981', backgroundColor: '#10b98111', fill: true, tension: 0.3 },
+        { label: 'Gastos', data: serie.map(s => s.salidas), borderColor: '#f43f5e', backgroundColor: '#f43f5e11', fill: true, tension: 0.3 }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#ffffff11' } }, x: { grid: { display: false } } } }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: '#ffffff08' }, ticks: { color: '#64748b', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+      }
+    }
   });
 
-  // Chart de Gastos (Donut)
-  new Chart(chartGastosCtx, {
+  // Chart Gastos
+  new Chart(document.getElementById('chartGastos').getContext('2d'), {
     type: 'doughnut',
     data: {
       labels: catGastos.map(c => c.categoria),
       datasets: [{
         data: catGastos.map(c => c.total),
-        backgroundColor: ['#e11d48', '#f43f5e', '#fb7185', '#fda4af', '#fff1f2'],
+        backgroundColor: ['#e11d48', '#f43f5e', '#fb7185', '#fda4af', '#cbd5e1'],
         borderWidth: 0
       }]
     },
-    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, color: '#94a3b8' } } } }
+    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#64748b', boxWidth: 8, font: { size: 10 } } } } }
   });
 </script>
 {% endblock %}

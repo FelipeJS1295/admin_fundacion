@@ -19,8 +19,8 @@ def dashboard_consolidado(
     categoria_id: Optional[int] = Query(None),
     metodo: Optional[str] = Query(None),
     origen: Optional[str] = Query(None),
+    agrupar: str = Query("dia"), # Nuevo: 'dia', 'mes', 'año'
 ):
-    # 1. Configuración de fuentes según filtro de origen
     fuentes_config = []
     if not origen or origen == "Banco":
         fuentes_config.append({"model": BancoMovimiento, "label": "Banco"})
@@ -28,11 +28,10 @@ def dashboard_consolidado(
         fuentes_config.append({"model": CajaMovimiento, "label": "Caja"})
 
     movimientos_mezclados = []
-    datos_por_dia = {}
+    datos_agrupados = {} # Para el gráfico
     datos_cat_ent = {}
     datos_cat_sal = {}
 
-    # 2. Consulta y procesamiento
     for fuente in fuentes_config:
         Model = fuente["model"]
         query = db.query(Model, Categoria.nombre.label("cat_nombre")).outerjoin(
@@ -42,17 +41,32 @@ def dashboard_consolidado(
         if desde: query = query.filter(Model.fecha >= desde)
         if hasta: query = query.filter(Model.fecha <= hasta)
         if categoria_id: query = query.filter(Model.categoria_id == categoria_id)
-        if fuente["label"] == "Banco" and metodo:
-            query = query.filter(Model.metodo_pago == metodo)
-
+        
         resultados = query.all()
 
         for obj, cat_nombre in resultados:
             monto = float(obj.monto)
             cat_name = cat_nombre or "Sin categoría"
-            fecha_iso = obj.fecha.isoformat()
+            
+            # --- LÓGICA DE AGRUPACIÓN PARA EL GRÁFICO ---
+            if agrupar == "año":
+                key_grafico = obj.fecha.strftime("%Y")
+            elif agrupar == "mes":
+                key_grafico = obj.fecha.strftime("%Y-%m")
+            else:
+                key_grafico = obj.fecha.isoformat()
 
-            # Datos para la tabla
+            if key_grafico not in datos_agrupados:
+                datos_agrupados[key_grafico] = {"entradas": 0, "salidas": 0}
+            
+            if obj.tipo == "entrada":
+                datos_agrupados[key_grafico]["entradas"] += monto
+                datos_cat_ent[cat_name] = datos_cat_ent.get(cat_name, 0) + monto
+            else:
+                datos_agrupados[key_grafico]["salidas"] += monto
+                datos_cat_sal[cat_name] = datos_cat_sal.get(cat_name, 0) + monto
+
+            # Datos para la tabla (siempre individuales)
             movimientos_mezclados.append({
                 "fecha": obj.fecha,
                 "tipo": obj.tipo,
@@ -62,29 +76,16 @@ def dashboard_consolidado(
                 "concepto": obj.concepto
             })
 
-            # Agregación para Gráfico de Línea
-            if fecha_iso not in datos_por_dia:
-                datos_por_dia[fecha_iso] = {"entradas": 0, "salidas": 0}
-            
-            if obj.tipo == "entrada":
-                datos_por_dia[fecha_iso]["entradas"] += monto
-                datos_cat_ent[cat_name] = datos_cat_ent.get(cat_name, 0) + monto
-            else:
-                datos_por_dia[fecha_iso]["salidas"] += monto
-                datos_cat_sal[cat_name] = datos_cat_sal.get(cat_name, 0) + monto
-
-    # 3. Ordenar y formatear para el frontend
     movimientos_mezclados.sort(key=lambda x: x["fecha"], reverse=True)
     
-    serie_diaria = [
-        {"fecha": k, "entradas": v["entradas"], "salidas": v["salidas"]} 
-        for k, v in sorted(datos_por_dia.items())
+    serie_grafico = [
+        {"label": k, "entradas": v["entradas"], "salidas": v["salidas"]} 
+        for k, v in sorted(datos_agrupados.items())
     ]
     
     cat_ent_list = [{"categoria": k, "total": v} for k, v in sorted(datos_cat_ent.items(), key=lambda x: x[1], reverse=True)]
     cat_sal_list = [{"categoria": k, "total": v} for k, v in sorted(datos_cat_sal.items(), key=lambda x: x[1], reverse=True)]
 
-    # 4. Respuesta
     return templates.TemplateResponse("dashboard/index.html", {
         "request": request,
         "items": movimientos_mezclados,
@@ -93,7 +94,7 @@ def dashboard_consolidado(
             "salidas": sum(d['total'] for d in cat_sal_list),
             "neto": sum(d['total'] for d in cat_ent_list) - sum(d['total'] for d in cat_sal_list)
         },
-        "serie": serie_diaria,
+        "serie": serie_grafico,
         "cat_entradas": cat_ent_list[:8],
         "cat_salidas": cat_sal_list[:8],
         "categorias": db.query(Categoria).order_by(Categoria.nombre).all(),
@@ -102,6 +103,7 @@ def dashboard_consolidado(
             "hasta": hasta.isoformat() if hasta else "",
             "categoria_id": categoria_id,
             "metodo": metodo,
-            "origen": origen
+            "origen": origen,
+            "agrupar": agrupar
         }
     })
