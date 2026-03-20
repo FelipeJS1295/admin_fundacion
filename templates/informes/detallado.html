@@ -63,15 +63,18 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] min-h-[400px]">
+
+        <div class="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl">
             <h4 class="text-white font-black text-[10px] uppercase tracking-widest mb-8">Flujo Mensual: Ingresos vs
                 Gastos</h4>
-            <canvas id="barChart"></canvas>
+            <div class="relative h-[350px] w-full"> <canvas id="barChart"></canvas>
+            </div>
         </div>
 
-        <div class="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] min-h-[400px]">
+        <div class="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl">
             <h4 class="text-white font-black text-[10px] uppercase tracking-widest mb-8">Distribución por Categoría</h4>
-            <canvas id="doughnutChart"></canvas>
+            <div class="relative h-[350px] w-full"> <canvas id="doughnutChart"></canvas>
+            </div>
         </div>
     </div>
 
