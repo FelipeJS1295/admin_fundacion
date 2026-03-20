@@ -5,96 +5,168 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark" />
-  <title>{% block title %}{{ title or "Panel — Fundación" }}{% endblock %}</title>
+  <title>{% block title %}{{ title or "Panel — JAMAROFF" }}{% endblock %}</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
-          colors: { brand: { DEFAULT: '#10b981', 600: '#059669', 700: '#047857' } },
-          boxShadow: { soft: '0 10px 30px -12px rgb(0 0 0 / .35)' },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif']
+          },
+          colors: {
+            // Colores de marca más profundos y vibrantes
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857'
+            },
+            // Superficies estilo "Glassmorphism" y modo oscuro real
+            slate: {
+              850: '#1e293b', // Intermedio para tarjetas
+              950: '#0f172a', // Fondo principal
+              1000: '#020617' // Negro absoluto para sombras
+            }
+          },
+          boxShadow: {
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+            'soft-xl': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)'
+          },
         }
       }
     }
   </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* Suavizado de scrollbar para diseño premium */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    body {
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+
+    .glass-effect {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
 
   {% block head %}{% endblock %}
 </head>
 
-<body class="h-full bg-slate-950 text-slate-100 antialiased">
-  <a href="#main"
-    class="sr-only focus:not-sr-only focus:absolute focus:m-3 focus:rounded-md focus:bg-slate-800 focus:px-3 focus:py-2">Saltar
-    al contenido</a>
+<body class="h-full bg-slate-950 text-slate-200 antialiased selection:bg-brand-500/30 selection:text-brand-100">
 
-  {% set path = request.url.path %}
-  <div class="min-h-screen flex">
-    <!-- overlay móvil -->
-    <div id="backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
+  <a href="#main"
+    class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-brand-600 focus:text-white">
+    Saltar al contenido
+  </a>
+
+  <div class="min-h-screen flex overflow-hidden">
+    <div id="backdrop"
+      class="fixed inset-0 bg-slate-1000/60 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
 
     {% include 'partials/sidebar.html' %}
 
-    <div class="flex-1 min-w-0 md:ml-0">
+    <div class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
       {% include 'partials/topbar.html' %}
 
-      <main id="main" class="max-w-7xl mx-auto px-4 py-6">
-        {% include 'partials/flash.html' %}
+      <main id="main" class="flex-1 overflow-x-hidden pb-12">
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        <div class="mb-6 flex items-center justify-between gap-3">
-          <div>
-            <h1 class="text-2xl font-semibold">{% block page_title %}{{ title or "Resumen" }}{% endblock %}</h1>
-            {% block breadcrumb %}{% endblock %}
+          {% include 'partials/flash.html' %}
+
+          <header class="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div class="space-y-1">
+              {% block breadcrumb %}{% endblock %}
+              <h1 class="text-3xl font-extrabold text-white tracking-tight">
+                {% block page_title %}{{ title or "Resumen" }}{% endblock %}
+              </h1>
+              <p class="text-slate-400 text-sm font-medium">{% block page_subtitle %}{% endblock %}</p>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+              {% block page_actions %}{% endblock %}
+            </div>
+          </header>
+
+          <div class="relative">
+            {% block content %}{% endblock %}
           </div>
-          <div class="flex items-center gap-2">{% block page_actions %}{% endblock %}</div>
-        </div>
 
-        {% block content %}{% endblock %}
+        </div>
       </main>
 
-      <footer class="max-w-7xl mx-auto px-4 py-8 text-xs text-slate-400">
-        Realizado por <a href="https://quantiumcoders.cl" target="_blank" class="underline">quantiumcoders.cl</a>
+      <footer class="border-t border-slate-900 bg-slate-950/50 py-6">
+        <div
+          class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-500">
+          <p>© 2026 JAMAROFF Home Atelier. Todos los derechos reservados.</p>
+          <p>Desarrollado con precisión por <a href="https://quantiumcoders.cl" target="_blank"
+              class="text-slate-400 hover:text-brand-500 transition-colors underline decoration-slate-800 underline-offset-4">quantiumcoders.cl</a>
+          </p>
+        </div>
       </footer>
     </div>
   </div>
 
-  <!-- Drawer móvil -->
   <script>
     const btn = document.getElementById('btnSidebar');
     const side = document.getElementById('sidebar');
     const back = document.getElementById('backdrop');
+
     function toggleDrawer(show) {
+      const isMobile = window.innerWidth < 768;
+      if (!isMobile) return;
+
       const open = show ?? side.classList.contains('-translate-x-full');
       if (open) {
-        side.classList.remove('-translate-x-full'); side.classList.add('translate-x-0');
-        back.classList.remove('hidden'); btn?.setAttribute('aria-expanded', 'true');
+        side.classList.remove('-translate-x-full');
+        back.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
       } else {
-        side.classList.add('-translate-x-full'); side.classList.remove('translate-x-0');
-        back.classList.add('hidden'); btn?.setAttribute('aria-expanded', 'false');
+        side.classList.add('-translate-x-full');
+        back.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
       }
     }
+
     btn?.addEventListener('click', () => toggleDrawer(true));
     back?.addEventListener('click', () => toggleDrawer(false));
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleDrawer(false); });
-    if (window.matchMedia('(min-width: 768px)').matches === false) {
-      side.classList.add('-translate-x-full');
-    }
 
+    // Limpieza de formularios GET para URLs más limpias
     document.addEventListener("submit", (e) => {
       const form = e.target;
-      if (!(form instanceof HTMLFormElement)) return;
-      if ((form.method || "").toLowerCase() !== "get") return;
-
-      // Borra inputs/selects vacíos para que no se envíen como ?campo=
-      [...form.elements].forEach((el) => {
-        if (!el.name) return;
-        if (el.disabled) return;
-        const v = (el.value ?? "").toString().trim();
-        if (v === "") el.removeAttribute("name");
-      });
+      if (form.tagName === 'FORM' && form.method.toLowerCase() === "get") {
+        [...form.elements].forEach((el) => {
+          if (el.name && (el.value === "" || el.value === null)) {
+            el.disabled = true; // Evita que campos vacíos ensucien la URL
+          }
+        });
+      }
     });
   </script>
 
