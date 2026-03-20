@@ -196,6 +196,61 @@ def actualizar_movimiento(scope: Literal["banco","caja"], tipo: Tipo, mid: int,
     db.commit()
     return RedirectResponse(url=f"/finanzas/{scope}/{'entradas' if tipo=='entrada' else 'salidas'}", status_code=303)
 
+# -------------------------- CREAR / EDITAR --------------------------
+
+@router.get("/{scope}/{tipo}/nuevo")
+def nuevo_movimiento(request: Request, scope: Scope, tipo: Tipo, db: Session = Depends(get_db)):
+    categorias = db.query(Categoria).filter(or_(Categoria.tipo == tipo, Categoria.tipo == "mixta")).order_by(Categoria.nombre).all()
+    return templates.TemplateResponse("finanzas/form_movimiento.html", {
+        "request": request, "scope": scope, "tipo": tipo, "categorias": categorias, "obj": None
+    })
+
+@router.get("/{scope}/{tipo}/{mid}/editar")
+def editar_movimiento(request: Request, scope: Scope, tipo: Tipo, mid: int, db: Session = Depends(get_db)):
+    Model = model_for(scope)
+    obj = db.get(Model, mid)
+    if not obj:
+        return RedirectResponse(url=f"/finanzas/{scope}/movimientos", status_code=303)
+
+    categorias = db.query(Categoria).filter(or_(Categoria.tipo == tipo, Categoria.tipo == "mixta")).order_by(Categoria.nombre).all()
+    
+    return templates.TemplateResponse("finanzas/form_movimiento.html", {
+        "request": request, "scope": scope, "tipo": tipo, "categorias": categorias, "obj": obj
+    })
+
+@router.post("/{scope}/{tipo}/nuevo")
+@router.post("/{scope}/{tipo}/{mid}/editar")
+def guardar_movimiento(
+    scope: Scope, tipo: Tipo, mid: Optional[int] = None,
+    fecha: date = Form(...), monto: float = Form(...), concepto: str = Form(...),
+    categoria_id: Optional[str] = Form(None), metodo_pago: Optional[str] = Form(None),
+    numero_documento: Optional[str] = Form(None), descripcion: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+    Model = model_for(scope)
+    
+    if mid: # EDITAR
+        obj = db.get(Model, mid)
+        if not obj: return RedirectResponse(url=f"/finanzas/{scope}/movimientos", status_code=303)
+    else: # CREAR
+        obj = Model()
+        db.add(obj)
+
+    obj.fecha = fecha
+    obj.tipo = tipo
+    obj.monto = monto
+    obj.concepto = concepto
+    obj.categoria_id = to_int_or_none(categoria_id)
+    obj.numero_documento = numero_documento
+    obj.descripcion = descripcion
+    
+    if scope == "banco":
+        obj.metodo_pago = metodo_pago or "otro"
+
+    db.commit()
+    redirect_to = "entradas" if tipo == "entrada" else "salidas"
+    return RedirectResponse(url=f"/finanzas/{scope}/{redirect_to}", status_code=303)
+
 # -------------------------- eliminar --------------------------
 @router.post("/{scope}/{tipo}/{mid}/eliminar")
 def eliminar_movimiento(scope: Literal["banco","caja"], tipo: Tipo, mid: int, db: Session = Depends(get_db)):
