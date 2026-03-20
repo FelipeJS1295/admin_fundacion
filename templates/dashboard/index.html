@@ -1,293 +1,112 @@
 {% extends "layouts/base.html" %}
 {% block content %}
-<h2 class="text-2xl font-semibold mb-4">Resumen</h2>
-
-<h3 class="text-xl font-semibold mb-4">Dashboard financiero</h3>
+<h2 class="text-2xl font-semibold mb-4">Resumen Consolidado</h2>
+<h3 class="text-xl font-semibold mb-4 text-slate-400">Caja + Banco</h3>
 
 <form method="get" action="/dashboard" class="grid gap-3 md:grid-cols-6 mb-6">
   <div>
     <label class="block text-sm text-slate-300 mb-1">Desde</label>
-    <input type="date" name="desde" value="{{ desde }}"
-           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+    <input type="date" name="desde" value="{{ filtro.desde }}"
+      class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-white">
   </div>
   <div>
     <label class="block text-sm text-slate-300 mb-1">Hasta</label>
-    <input type="date" name="hasta" value="{{ hasta }}"
-           class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+    <input type="date" name="hasta" value="{{ filtro.hasta }}"
+      class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-white">
   </div>
   <div>
     <label class="block text-sm text-slate-300 mb-1">Categoría</label>
-    <select name="categoria_id" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+    <select name="categoria_id" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-white">
       <option value="">Todas</option>
       {% for c in categorias %}
-        <option value="{{ c.id }}" {{ 'selected' if categoria_id==c.id else '' }}>{{ c.nombre }}</option>
+      <option value="{{ c.id }}" {{ 'selected' if filtro.categoria_id==c.id else '' }}>{{ c.nombre }}</option>
       {% endfor %}
     </select>
   </div>
   <div>
-    <label class="block text-sm text-slate-300 mb-1">Método</label>
-    <select name="metodo_pago" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2">
+    <label class="block text-sm text-slate-300 mb-1">Método (Solo Banco)</label>
+    <select name="metodo" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-white">
       {% set metodos = ['','efectivo','transferencia','debito','credito','otros'] %}
       {% for m in metodos %}
-        <option value="{{ m }}" {{ 'selected' if metodo_pago==m else '' }}>{{ (m or 'Todos')|capitalize }}</option>
+      <option value="{{ m }}" {{ 'selected' if filtro.metodo==m else '' }}>{{ (m or 'Todos')|capitalize }}</option>
       {% endfor %}
     </select>
   </div>
   <div class="md:col-span-2 flex items-end">
-    <button class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 w-full md:w-auto">
-      Aplicar
+    <button class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white w-full md:w-auto transition-colors">
+      Filtrar Datos
     </button>
   </div>
 </form>
 
-<!-- KPIs -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
   <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
-    <div class="text-slate-400 text-sm">Entradas</div>
+    <div class="text-slate-400 text-sm">Total Entradas</div>
     <div class="text-3xl font-bold mt-1 text-emerald-400">{{ kpi.entradas|clp }}</div>
   </div>
   <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
-    <div class="text-slate-400 text-sm">Salidas</div>
+    <div class="text-slate-400 text-sm">Total Salidas</div>
     <div class="text-3xl font-bold mt-1 text-rose-400">{{ kpi.salidas|clp }}</div>
   </div>
   <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
-    <div class="text-slate-400 text-sm">Balance</div>
-    {% set balance_color = 'text-emerald-400' if kpi.neto >= 0 else 'text-rose-400' %}
-    <div class="text-3xl font-bold mt-1 {{ balance_color }}">{{ kpi.neto|clp }}</div>
+    <div class="text-slate-400 text-sm">Balance Neto</div>
+    <div class="text-3xl font-bold mt-1 {{ 'text-emerald-400' if kpi.neto >= 0 else 'text-rose-400' }}">
+      {{ kpi.neto|clp }}
+    </div>
   </div>
 </div>
 
-<!-- Línea: flujo diario -->
-<div class="rounded-2xl p-5 bg-slate-900 border border-slate-800 mb-6">
-  <div class="flex items-center justify-between mb-3">
-    <h3 class="text-lg font-semibold">Flujo diario</h3>
-    <div class="text-sm text-slate-400">Rango: {{ desde|replace('-', '/') }} — {{ hasta|replace('-', '/') }}</div>
-  </div>
-  <!-- WRAPPER con alto fijo -->
-  <div class="relative h-64 md:h-80">
-    <canvas id="linea_flujo" class="w-full h-full"></canvas>
-  </div>
-</div>
-
-<!-- Doughnuts: Top categorías -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-  <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
-    <h3 class="text-lg font-semibold mb-3">Top categorías (Entradas)</h3>
-    <div class="relative h-64">
-      <canvas id="donut_cat_ent" class="w-full h-full"></canvas>
-    </div>
-    <ul class="mt-3 text-sm text-slate-300 space-y-1">
-      {% for x in cat_entradas %}
-        <li class="flex justify-between"><span>{{ x.categoria }}</span><span class="font-semibold">{{ x.total|clp }}</span></li>
-      {% else %}
-        <li>No hay datos.</li>
-      {% endfor %}
-    </ul>
-  </div>
-  <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
-    <h3 class="text-lg font-semibold mb-3">Top categorías (Salidas)</h3>
-    <div class="relative h-64">
-      <canvas id="donut_cat_sal" class="w-full h-full"></canvas>
-    </div>
-    <ul class="mt-3 text-sm text-slate-300 space-y-1">
-      {% for x in cat_salidas %}
-        <li class="flex justify-between"><span>{{ x.categoria }}</span><span class="font-semibold">{{ x.total|clp }}</span></li>
-      {% else %}
-        <li>No hay datos.</li>
-      {% endfor %}
-    </ul>
-  </div>
-</div>
-
-<!-- Pies por método -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-  <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
-    <h3 class="text-lg font-semibold mb-3">Métodos de pago (Entradas)</h3>
-    <div class="relative h-56">
-      <canvas id="pie_met_ent" class="w-full h-full"></canvas>
-    </div>
-    <ul class="mt-3 text-sm text-slate-300 space-y-1">
-      {% for x in met_entradas %}
-        <li class="flex justify-between"><span>{{ x.metodo|capitalize }}</span><span class="font-semibold">{{ x.total|clp }}</span></li>
-      {% else %}
-        <li>No hay datos.</li>
-      {% endfor %}
-    </ul>
-  </div>
-  <div class="rounded-2xl p-5 bg-slate-900 border border-slate-800">
-    <h3 class="text-lg font-semibold mb-3">Métodos de pago (Salidas)</h3>
-    <div class="relative h-56">
-      <canvas id="pie_met_sal" class="w-full h-full"></canvas>
-    </div>
-    <ul class="mt-3 text-sm text-slate-300 space-y-1">
-      {% for x in met_salidas %}
-        <li class="flex justify-between"><span>{{ x.metodo|capitalize }}</span><span class="font-semibold">{{ x.total|clp }}</span></li>
-      {% else %}
-        <li>No hay datos.</li>
-      {% endfor %}
-    </ul>
-  </div>
-</div>
-
-<!-- Últimos movimientos -->
-<h3 class="text-lg font-semibold mb-3">Últimos movimientos</h3>
-<div class="overflow-x-auto rounded-2xl border border-slate-800">
+<h3 class="text-lg font-semibold mb-3">Últimos movimientos (Caja y Banco)</h3>
+<div class="overflow-x-auto rounded-2xl border border-slate-800 mb-8">
   <table class="min-w-full text-sm">
     <thead class="bg-slate-900 text-slate-300">
       <tr>
         <th class="px-3 py-2 text-left">Fecha</th>
+        <th class="px-3 py-2 text-left">Origen</th>
         <th class="px-3 py-2 text-left">Tipo</th>
         <th class="px-3 py-2 text-left">Monto</th>
         <th class="px-3 py-2 text-left">Categoría</th>
-        <th class="px-3 py-2 text-left">Descripción</th>
+        <th class="px-3 py-2 text-left">Concepto</th>
       </tr>
     </thead>
-    <tbody>
-      {% for t in ultimos %}
-      <tr class="border-t border-slate-800">
-        <td class="px-3 py-2">{{ t.fecha|fecha_cl }}</td>
+    <tbody class="bg-slate-950/50">
+      {% for item in items %}
+      <tr class="border-t border-slate-800 hover:bg-slate-900/50 transition-colors">
+        <td class="px-3 py-2 text-slate-400">{{ item.fecha }}</td>
+        <td class="px-3 py-2">
+          <span
+            class="px-2 py-0.5 rounded text-[10px] uppercase font-bold border 
+                {{ 'border-blue-500 text-blue-400' if item.origen == 'Banco' else 'border-green-500 text-green-400' }}">
+            {{ item.origen }}
+          </span>
+        </td>
         <td class="px-3 py-2">
           <span class="px-2 py-0.5 rounded-full text-xs
-            {{ 'bg-emerald-900/40 text-emerald-200 border border-emerald-700/40' if t.tipo=='entrada'
-               else 'bg-rose-900/40 text-rose-200 border border-rose-700/40' }}">
-            {{ t.tipo|capitalize }}
+            {{ 'bg-emerald-900/40 text-emerald-200' if item.tipo=='entrada' else 'bg-rose-900/40 text-rose-200' }}">
+            {{ item.tipo|capitalize }}
           </span>
         </td>
-        <td class="px-3 py-2">
-          <span class="{{ 'text-emerald-400' if t.tipo=='entrada' else 'text-rose-400' }}">
-            {{ t.monto|clp }}
-          </span>
+        <td class="px-3 py-2 font-mono {{ 'text-emerald-400' if item.tipo=='entrada' else 'text-rose-400' }}">
+          {{ item.monto|clp }}
         </td>
-        <td class="px-3 py-2">{{ t.categoria.nombre if t.categoria else '-' }}</td>
-        <td class="px-3 py-2">{{ t.descripcion or '' }}</td>
+        <td class="px-3 py-2 text-slate-300">{{ item.categoria }}</td>
+        <td class="px-3 py-2 text-slate-500">{{ item.concepto }}</td>
       </tr>
       {% else %}
-      <tr><td class="px-3 py-4 text-slate-400" colspan="5">Sin movimientos.</td></tr>
+      <tr>
+        <td class="px-3 py-8 text-center text-slate-500" colspan="6">No se encontraron movimientos en este rango.</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 
-<!-- Defensivo: asegurar que los canvas respeten el tamaño del wrapper -->
 <style>
-  canvas { display:block; width:100% !important; height:100% !important; }
+  canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
 </style>
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Datos desde el servidor
-  const serie = {{ serie|tojson }};
-  const catEntradas = {{ cat_entradas|tojson }};
-  const catSalidas  = {{ cat_salidas|tojson }};
-  const metEntradas = {{ met_entradas|tojson }};
-  const metSalidas  = {{ met_salidas|tojson }};
-
-  // Helpers formato
-  const fmtCLP = (v) => {
-    try { return '$' + Math.round(Number(v)||0).toLocaleString('es-CL') + '.-'; }
-    catch(e){ return v; }
-  };
-  const ddmmyy = (iso) => {
-    const d = new Date(iso + 'T00:00:00');
-    const dd = ('0'+d.getDate()).slice(-2);
-    const mm = ('0'+(d.getMonth()+1)).slice(-2);
-    const yyyy = d.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-  };
-
-  // Destroy-safe creator
-  function createChart(canvas, config){
-    if(!canvas) return null;
-    if(canvas._chartInstance) canvas._chartInstance.destroy();
-    const chart = new Chart(canvas, config);
-    canvas._chartInstance = chart;
-    return chart;
-  }
-
-  const commonOpts = {
-    responsive: true,
-    maintainAspectRatio: false, // usamos el alto del wrapper
-    resizeDelay: 150,
-    plugins: { legend: { labels: { color: '#cbd5e1' } } }
-  };
-
-  // Línea Entradas/Salidas por día
-  createChart(document.getElementById('linea_flujo'), {
-    type: 'line',
-    data: {
-      labels: serie.map(x => ddmmyy(x.fecha)),
-      datasets: [
-        { label: 'Entradas', data: serie.map(x => x.entradas), tension: 0.3, borderWidth: 2, pointRadius: 0 },
-        { label: 'Salidas',  data: serie.map(x => x.salidas),  tension: 0.3, borderWidth: 2, pointRadius: 0 },
-      ]
-    },
-    options: {
-      ...commonOpts,
-      scales: {
-        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' } },
-        y: {
-          ticks: { color: '#94a3b8', callback: (v) => fmtCLP(v) },
-          grid: { color: 'rgba(148,163,184,0.1)' }
-        }
-      },
-      plugins: {
-        ...commonOpts.plugins,
-        tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${fmtCLP(ctx.parsed.y)}` } }
-      }
-    }
-  });
-
-  // Donut categorías Entradas
-  createChart(document.getElementById('donut_cat_ent'), {
-    type: 'doughnut',
-    data: { labels: catEntradas.map(x => x.categoria), datasets: [{ data: catEntradas.map(x => x.total) }] },
-    options: {
-      ...commonOpts,
-      plugins: {
-        ...commonOpts.plugins,
-        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${fmtCLP(ctx.parsed)}` } }
-      }
-    }
-  });
-
-  // Donut categorías Salidas
-  createChart(document.getElementById('donut_cat_sal'), {
-    type: 'doughnut',
-    data: { labels: catSalidas.map(x => x.categoria), datasets: [{ data: catSalidas.map(x => x.total) }] },
-    options: {
-      ...commonOpts,
-      plugins: {
-        ...commonOpts.plugins,
-        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${fmtCLP(ctx.parsed)}` } }
-      }
-    }
-  });
-
-  // Pie métodos Entradas
-  createChart(document.getElementById('pie_met_ent'), {
-    type: 'pie',
-    data: { labels: metEntradas.map(x => x.metodo), datasets: [{ data: metEntradas.map(x => x.total) }] },
-    options: {
-      ...commonOpts,
-      plugins: {
-        ...commonOpts.plugins,
-        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${fmtCLP(ctx.parsed)}` } }
-      }
-    }
-  });
-
-  // Pie métodos Salidas
-  createChart(document.getElementById('pie_met_sal'), {
-    type: 'pie',
-    data: { labels: metSalidas.map(x => x.metodo), datasets: [{ data: metSalidas.map(x => x.total) }] },
-    options: {
-      ...commonOpts,
-      plugins: {
-        ...commonOpts.plugins,
-        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${fmtCLP(ctx.parsed)}` } }
-      }
-    }
-  });
-</script>
 {% endblock %}
