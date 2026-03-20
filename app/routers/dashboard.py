@@ -21,7 +21,7 @@ def dashboard_consolidado(
     origen: Optional[str] = Query(None),
     agrupar: str = Query("dia"),
 ):
-    # 1. Configuración de fuentes
+    # 1. Configuración dinámica de fuentes
     fuentes_config = []
     if not origen or origen == "Banco":
         fuentes_config.append({"model": BancoMovimiento, "label": "Banco"})
@@ -32,6 +32,12 @@ def dashboard_consolidado(
     datos_agrupados = {}
     datos_cat_ent = {}
     datos_cat_sal = {}
+
+    # Paleta de colores para el gráfico de distribución
+    paleta_colores = [
+        '#ef4444', '#f97316', '#eab308', '#22c55e', 
+        '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef'
+    ]
 
     for fuente in fuentes_config:
         Model = fuente["model"]
@@ -51,7 +57,7 @@ def dashboard_consolidado(
             monto = float(obj.monto)
             cat_name = cat_nombre or "Sin categoría"
             
-            # Agrupación para el gráfico
+            # Agrupación para el gráfico de línea
             if agrupar == "año": key_grafico = obj.fecha.strftime("%Y")
             elif agrupar == "mes": key_grafico = obj.fecha.strftime("%Y-%m")
             else: key_grafico = obj.fecha.isoformat()
@@ -75,8 +81,10 @@ def dashboard_consolidado(
                 "concepto": obj.concepto
             })
 
+    # Ordenar por fecha descendente
     movimientos_mezclados.sort(key=lambda x: x["fecha"], reverse=True)
     
+    # Preparar series
     serie_grafico = [{"label": k, "entradas": v["entradas"], "salidas": v["salidas"]} for k, v in sorted(datos_agrupados.items())]
     cat_ent_list = [{"categoria": k, "total": v} for k, v in sorted(datos_cat_ent.items(), key=lambda x: x[1], reverse=True)]
     cat_sal_list = [{"categoria": k, "total": v} for k, v in sorted(datos_cat_sal.items(), key=lambda x: x[1], reverse=True)]
@@ -92,6 +100,7 @@ def dashboard_consolidado(
         "serie": serie_grafico,
         "cat_entradas": cat_ent_list[:8],
         "cat_salidas": cat_sal_list[:8],
+        "paleta_colores": paleta_colores,
         "categorias": db.query(Categoria).order_by(Categoria.nombre).all(),
         "filtro": {
             "desde": desde.isoformat() if desde else "",
