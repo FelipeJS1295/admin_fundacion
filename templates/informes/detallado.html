@@ -1,120 +1,205 @@
 {% extends "layouts/base.html" %}
+
+{% block page_title %}Dashboard Maestro{% endblock %}
+{% block page_subtitle %}Visión consolidada de movimientos de Caja y Banco.{% endblock %}
+
 {% block content %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div class="max-w-7xl mx-auto space-y-8 text-slate-200 pb-10">
 
-<div class="max-w-7xl mx-auto space-y-10 py-6 no-scrollbar">
+    <div class="bg-slate-900/50 border border-white/[0.05] rounded-[2.5rem] p-8 shadow-2xl backdrop-blur-md">
+        <form method="get" action="/dashboard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
 
-    <div
-        class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-white/5 pb-8">
-        <div>
-            <span class="text-emerald-500 font-black text-[10px] uppercase tracking-[0.3em]">Business
-                Intelligence</span>
-            <h1 class="text-4xl font-black text-white tracking-tighter">REPORTE FINANCIERO ESTRATÉGICO</h1>
-            <p class="text-slate-500 text-sm mt-1 font-medium">Análisis de rendimiento, liquidez y distribución de
-                capital.</p>
-        </div>
-        <div class="flex gap-3">
-            <button onclick="window.print()"
-                class="px-6 py-3 bg-white text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
-                Imprimir Reporte
-            </button>
-        </div>
-    </div>
-
-    <div class="bg-slate-900/50 border border-white/5 p-6 rounded-[2rem] backdrop-blur-md">
-        <form class="flex flex-wrap items-end gap-6">
             <div class="space-y-2">
-                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Desde</label>
-                <input type="date" name="desde" value="{{ filtro.desde }}"
-                    class="bg-slate-950 border-white/10 rounded-xl text-xs text-white p-3 outline-none focus:border-emerald-500 transition-all">
+                <label
+                    class="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Período
+                </label>
+                <div class="flex gap-2">
+                    <input type="date" name="desde" value="{{ filtro.desde }}"
+                        class="w-full bg-slate-950 border border-white/10 rounded-xl text-[11px] p-3 text-white focus:border-emerald-500 outline-none transition-all">
+                    <input type="date" name="hasta" value="{{ filtro.hasta }}"
+                        class="w-full bg-slate-950 border border-white/10 rounded-xl text-[11px] p-3 text-white focus:border-emerald-500 outline-none transition-all">
+                </div>
             </div>
+
             <div class="space-y-2">
-                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Hasta</label>
-                <input type="date" name="hasta" value="{{ filtro.hasta }}"
-                    class="bg-slate-950 border-white/10 rounded-xl text-xs text-white p-3 outline-none focus:border-emerald-500 transition-all">
+                <label
+                    class="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                    <i data-lucide="landmark" class="w-3.5 h-3.5"></i> Cuenta
+                </label>
+                <select name="origen"
+                    class="w-full bg-slate-950 border border-white/10 rounded-xl text-[11px] p-3 text-white focus:border-emerald-500 outline-none transition-all">
+                    <option value="">Todas las cuentas</option>
+                    <option value="banco" {{ 'selected' if filtro.origen=='banco' else '' }}>💳 Banco</option>
+                    <option value="caja" {{ 'selected' if filtro.origen=='caja' else '' }}>💵 Caja Chica</option>
+                </select>
             </div>
-            <button type="submit"
-                class="bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">Aplicar
-                Filtros</button>
+
+            <div class="space-y-2">
+                <label
+                    class="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                    <i data-lucide="tag" class="w-3.5 h-3.5"></i> Categoría
+                </label>
+                <select name="categoria_id"
+                    class="w-full bg-slate-950 border border-white/10 rounded-xl text-[11px] p-3 text-white focus:border-emerald-500 outline-none transition-all">
+                    <option value="">Todas las categorías</option>
+                    {% for c in categorias %}
+                    <option value="{{ c.id }}" {{ 'selected' if filtro.categoria_id==c.id else '' }}>{{ c.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="space-y-2">
+                <label
+                    class="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                    <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Método
+                </label>
+                <select name="metodo"
+                    class="w-full bg-slate-950 border border-white/10 rounded-xl text-[11px] p-3 text-white focus:border-emerald-500 outline-none transition-all">
+                    <option value="">Cualquier método</option>
+                    {% for m in ['transferencia','debito','credito','efectivo','otro'] %}
+                    <option value="{{ m }}" {{ 'selected' if filtro.metodo==m else '' }}>{{ m|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex items-end">
+                <button type="submit"
+                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-[10px] uppercase tracking-[0.2em] transition-all shadow-lg shadow-emerald-900/20">
+                    Actualizar Dashboard
+                </button>
+            </div>
         </form>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div
-            class="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] flex justify-between items-center shadow-2xl">
-            <div>
-                <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Disponibilidad Banco</p>
-                <h3 class="text-3xl font-black text-white mt-1">{{ fuentes.banco|clp }}</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-slate-900 border border-white/[0.05] p-6 rounded-[2rem] shadow-xl flex items-center gap-5">
+            <div
+                class="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                <i data-lucide="trending-up" class="text-emerald-500 w-6 h-6"></i>
             </div>
-            <div class="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                <i data-lucide="landmark"></i>
+            <div>
+                <p class="text-slate-500 text-[9px] font-black uppercase tracking-widest">Ingresos Totales</p>
+                <h3 class="text-2xl font-black text-emerald-400">{{ kpi.entradas|clp }}</h3>
             </div>
         </div>
-        <div
-            class="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] flex justify-between items-center shadow-2xl">
-            <div>
-                <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Disponibilidad Caja</p>
-                <h3 class="text-3xl font-black text-white mt-1">{{ fuentes.caja|clp }}</h3>
+
+        <div class="bg-slate-900 border border-white/[0.05] p-6 rounded-[2rem] shadow-xl flex items-center gap-5">
+            <div
+                class="h-12 w-12 rounded-2xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
+                <i data-lucide="trending-down" class="text-rose-500 w-6 h-6"></i>
             </div>
-            <div class="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
-                <i data-lucide="wallet"></i>
+            <div>
+                <p class="text-slate-500 text-[9px] font-black uppercase tracking-widest">Gastos Totales</p>
+                <h3 class="text-2xl font-black text-rose-400">{{ kpi.salidas|clp }}</h3>
+            </div>
+        </div>
+
+        <div
+            class="bg-slate-900 border border-white/[0.05] p-6 rounded-[2rem] shadow-xl flex items-center gap-5 border-b-2 border-b-emerald-500/50">
+            <div class="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                <i data-lucide="wallet" class="text-white w-6 h-6"></i>
+            </div>
+            <div>
+                <p class="text-slate-500 text-[9px] font-black uppercase tracking-widest">Balance Neto</p>
+                <h3 class="text-2xl font-black {{ 'text-emerald-400' if kpi.neto >= 0 else 'text-rose-400' }}">
+                    {{ kpi.neto|clp }}
+                </h3>
             </div>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        <div class="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl">
-            <h4 class="text-white font-black text-[10px] uppercase tracking-widest mb-8">Flujo Mensual: Ingresos vs
-                Gastos</h4>
-            <div class="relative h-[350px] w-full"> <canvas id="barChart"></canvas>
+        <div class="bg-slate-900 border border-white/[0.05] p-8 rounded-[2.5rem] shadow-2xl">
+            <h4 class="text-white font-black text-[10px] uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-500"></i>
+                Evolución de Flujo Mensual
+            </h4>
+            <div class="relative h-[350px] w-full">
+                <canvas id="barChart"></canvas>
             </div>
         </div>
 
-        <div class="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl">
-            <h4 class="text-white font-black text-[10px] uppercase tracking-widest mb-8">Distribución por Categoría</h4>
-            <div class="relative h-[350px] w-full"> <canvas id="doughnutChart"></canvas>
+        <div class="bg-slate-900 border border-white/[0.05] p-8 rounded-[2.5rem] shadow-2xl">
+            <h4 class="text-white font-black text-[10px] uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                <i data-lucide="pie-chart" class="w-4 h-4 text-blue-500"></i>
+                Distribución por Categoría
+            </h4>
+            <div class="relative h-[350px] w-full">
+                <canvas id="doughnutChart"></canvas>
             </div>
         </div>
     </div>
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Datos desde el servidor
-    const mensual = {{ grafico_mensual| tojson }};
-    const dona = {{ dona| tojson }};
+    // Inicializar Iconos
+    lucide.createIcons();
 
-    // Configuración Gráfico de Barras
+    // Datos inyectados desde el servidor
+    const serieMensual = {{ serie_mensual| tojson }};
+    const dona = {{ dona| tojson }};
+    const paleta = {{ paleta_colores| tojson }};
+
+    // 1. Gráfico de Barras (Ingresos vs Gastos)
     new Chart(document.getElementById('barChart'), {
         type: 'bar',
         data: {
-            labels: mensual.map(m => m.mes),
+            labels: serieMensual.map(m => m.label),
             datasets: [
-                { label: 'Ingresos', data: mensual.map(m => m.ingresos), backgroundColor: '#10b981', borderRadius: 8 },
-                { label: 'Gastos', data: mensual.map(m => m.gastos), backgroundColor: '#f43f5e', borderRadius: 8 }
+                {
+                    label: 'Ingresos',
+                    data: serieMensual.map(m => m.entradas),
+                    backgroundColor: '#10b981',
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                },
+                {
+                    label: 'Gastos',
+                    data: serieMensual.map(m => m.salidas),
+                    backgroundColor: '#f43f5e',
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    align: 'end',
+                    labels: { color: '#64748b', font: { size: 10, weight: 'bold' }, usePointStyle: true, padding: 20 }
+                }
+            },
             scales: {
-                y: { grid: { color: '#ffffff05' }, ticks: { color: '#475569', font: { size: 10 } } },
-                x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 10 } } }
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.03)' },
+                    ticks: { color: '#475569', font: { size: 9 } }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#475569', font: { size: 9 } }
+                }
             }
         }
     });
 
-    // Configuración Gráfico de Dona
+    // 2. Gráfico de Dona (Distribución)
     new Chart(document.getElementById('doughnutChart'), {
         type: 'doughnut',
         data: {
             labels: dona.labels,
             datasets: [{
                 data: dona.data,
-                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'],
-                borderWidth: 0,
+                backgroundColor: paleta,
+                borderWidth: 5,
+                borderColor: '#0f172a',
                 hoverOffset: 20
             }]
         },
@@ -125,49 +210,44 @@
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: { color: '#64748b', font: { size: 10, weight: 'bold' }, padding: 20, usePointStyle: true }
+                    labels: {
+                        color: '#94a3b8',
+                        font: { size: 9, weight: '600' },
+                        padding: 15,
+                        usePointStyle: true
+                    }
                 }
             }
         }
     });
-
-    if (typeof lucide !== 'undefined') lucide.createIcons();
 </script>
 
 <style>
+    /* Estilos para evitar scrollbars feos */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
     @media print {
 
         #sidebar,
-        header,
+        #navbar,
         form,
         button {
             display: none !important;
         }
 
-        body {
-            background: white !important;
-            color: black !important;
-        }
-
-        .bg-slate-900,
-        .bg-slate-950,
-        .border-white\/5 {
+        .bg-slate-900 {
             background: white !important;
             border: 1px solid #eee !important;
             color: black !important;
-            box-shadow: none !important;
         }
 
-        h1,
-        h2,
         h3,
         h4,
+        p,
         span {
             color: black !important;
-        }
-
-        canvas {
-            max-height: 300px !important;
         }
     }
 </style>
