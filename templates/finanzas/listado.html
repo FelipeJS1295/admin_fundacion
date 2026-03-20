@@ -128,10 +128,10 @@
           </td>
           <td class="px-6 py-4 text-right">
             <div class="flex items-center justify-end gap-2">
-              <a href="/finanzas/{{ scope }}/{{ tipo }}/{{ i.id }}/editar"
+              <button onclick="abrirModalEdicion('{{ scope }}', '{{ tipo }}', '{{ i.id }}')"
                 class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 hover:border-sky-500/20 transition-all">
                 <i data-lucide="edit-3" class="w-4 h-4"></i>
-              </a>
+              </button>
               <form method="post" action="/finanzas/{{ scope }}/{{ tipo }}/{{ i.id }}/eliminar" class="inline-block"
                 onsubmit="return confirm('¿Eliminar este movimiento?');">
                 <button
@@ -142,22 +142,86 @@
             </div>
           </td>
         </tr>
-        {% else %}
-        <tr>
-          <td colspan="6" class="px-6 py-20 text-center">
-            <div class="flex flex-col items-center gap-3 opacity-20">
-              <i data-lucide="database-zap" class="w-12 h-12"></i>
-              <p class="text-xs font-black uppercase tracking-widest">Sin registros disponibles</p>
-            </div>
-          </td>
-        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
 
+<div id="modalEdicion"
+  class="fixed inset-0 z-[100] flex items-center justify-center hidden bg-black/80 backdrop-blur-sm px-4">
+  <div
+    class="bg-slate-900 border border-white/10 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl transition-all scale-95 opacity-0 duration-300"
+    id="modalContent">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-white font-black uppercase text-xs tracking-[0.2em]">Editar Registro</h3>
+      <button onclick="cerrarModal()" class="text-slate-500 hover:text-white transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div id="modalBody">
+      <div class="flex justify-center py-10">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+  function abrirModalEdicion(scope, tipo, id) {
+    const modal = document.getElementById('modalEdicion');
+    const content = document.getElementById('modalContent');
+    const body = document.getElementById('modalBody');
+
+    // Mostrar modal
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      content.classList.remove('scale-95', 'opacity-0');
+      content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+
+    // Cargar contenido del formulario
+    fetch(`/finanzas/${scope}/${tipo}/${id}/editar`)
+      .then(response => response.text())
+      .then(html => {
+        // Extraer solo el contenido del formulario del HTML recibido
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const form = doc.querySelector('form');
+
+        if (form) {
+          // Ajustar el formulario para el modal
+          body.innerHTML = '';
+          body.appendChild(form);
+          lucide.createIcons(); // Re-inicializar iconos dentro del modal
+        } else {
+          body.innerHTML = '<p class="text-rose-500 text-center uppercase text-[10px] font-bold">Error al cargar el formulario</p>';
+        }
+      })
+      .catch(err => {
+        body.innerHTML = '<p class="text-rose-500 text-center uppercase text-[10px] font-bold">Error de conexión</p>';
+      });
+  }
+
+  function cerrarModal() {
+    const modal = document.getElementById('modalEdicion');
+    const content = document.getElementById('modalContent');
+
+    content.classList.add('scale-95', 'opacity-0');
+    content.classList.remove('scale-100', 'opacity-100');
+
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      document.getElementById('modalBody').innerHTML = '<div class="flex justify-center py-10"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div></div>';
+    }, 300);
+  }
+
+  // Cerrar modal al hacer click fuera del contenido
+  document.getElementById('modalEdicion').addEventListener('click', function (e) {
+    if (e.target === this) cerrarModal();
+  });
+
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }
