@@ -29,7 +29,7 @@ from app.routers.pacientes import router as pacientes_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.finanzas import router as finanzas_pages_router
 from app.routers import usuarios as r_usuarios
-
+from app.routers.reports import router as reports_router
 
 # -------------------------------
 # Configuración de la app
@@ -119,3 +119,4 @@ app.include_router(dashboard_router)
 app.include_router(r_usuarios.router_admin)
 app.include_router(r_usuarios.router_account)
 app.include_router(finanzas_pages_router)
+app.include_router(reports_router)
